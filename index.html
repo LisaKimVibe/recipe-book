@@ -688,6 +688,19 @@ function removeThumbnail() {
 async function fetchThumbnail() {
   const url = document.getElementById('f_url').value.trim();
   if (!url || document.getElementById('f_thumbnail').value) return;
+
+  // 유튜브 썸네일 직접 추출
+  const ytMatch = url.match(
+    /(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+  );
+  if (ytMatch) {
+    const videoId = ytMatch[1];
+    const imgUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+    document.getElementById('f_thumbnail').value = imgUrl;
+    showThumbImg(imgUrl);
+    return;  // microlink 호출 없이 바로 종료
+  }
+
   const p = document.getElementById('thumbPreview');
   p.style.display = 'flex';
   document.getElementById('thumbLoading').style.display = 'flex';
