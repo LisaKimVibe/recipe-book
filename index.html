@@ -132,6 +132,34 @@
   .btn-save { width: 100%; background: var(--black); color: var(--ivory); border: none; border-radius: 4px; padding: 15px; font-size: 0.82rem; font-weight: 600; cursor: pointer; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 4px; }
   .btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
 
+  /* THUMBNAIL PREVIEW */
+  .thumb-preview {
+    width: 100%; aspect-ratio: 16/9;
+    border-radius: 8px; overflow: hidden;
+    background: var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 8px; position: relative;
+  }
+  .thumb-preview img { width: 100%; height: 100%; object-fit: cover; }
+  .thumb-preview .thumb-loading {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    color: var(--muted); font-size: 0.75rem; letter-spacing: 0.08em;
+  }
+  .thumb-preview .thumb-empty { color: var(--muted); font-size: 0.75rem; letter-spacing: 0.08em; }
+  .thumb-remove {
+    position: absolute; top: 6px; right: 6px;
+    background: rgba(0,0,0,0.5); color: #fff;
+    border: none; border-radius: 50%; width: 22px; height: 22px;
+    font-size: 0.65rem; cursor: pointer; display: flex;
+    align-items: center; justify-content: center;
+  }
+
+  /* CARD WITH THUMBNAIL IMAGE */
+  .card-thumb-img {
+    width: 100%; height: 100%;
+    object-fit: cover; display: block;
+  }
+
   /* SETTINGS */
   .settings-section-title { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 14px; }
   .settings-tag-list { display: flex; flex-direction: column; gap: 2px; }
@@ -183,7 +211,20 @@
     </div>
     <div class="modal-body">
       <input type="hidden" id="f_id">
-      <div class="field"><label>URL</label><input type="url" id="f_url" placeholder="facebook.com/reel/..."></div>
+      <input type="hidden" id="f_thumbnail">
+      <div class="field">
+        <label>URL</label>
+        <input type="url" id="f_url" placeholder="facebook.com/reel/..." onblur="fetchThumbnail()">
+        <div id="thumbPreview" style="display:none; margin-top:10px; position:relative; border-radius:8px; overflow:hidden; background:var(--surface); aspect-ratio:16/9; display:none; align-items:center; justify-content:center;">
+          <div id="thumbLoading" style="display:none; flex-direction:column; align-items:center; gap:8px; color:var(--muted); font-size:0.75rem;">
+            <div class="loading-spinner" style="width:20px;height:20px;margin:0;"></div>
+            <span>썸네일 가져오는 중...</span>
+          </div>
+          <div id="thumbEmpty" style="display:none; color:var(--muted); font-size:0.75rem; padding:20px;">썸네일을 가져올 수 없어요 😅</div>
+          <img id="thumbImg" style="display:none; width:100%; height:100%; object-fit:cover;" alt="썸네일">
+          <button onclick="removeThumbnail()" style="display:none; position:absolute; top:6px; right:6px; background:rgba(0,0,0,0.5); color:#fff; border:none; border-radius:50%; width:24px; height:24px; font-size:0.7rem; cursor:pointer;" id="thumbRemove">✕</button>
+        </div>
+      </div>
       <div class="field"><label>요리 이름</label><input type="text" id="f_title" placeholder="예: 간장계란볶음밥"></div>
       <div class="field"><label>주요 재료</label><input type="text" id="f_ingredients" placeholder="예: 계란, 밥, 간장, 파"></div>
       <div class="field">
@@ -405,8 +446,10 @@ function getDomain(url) { try { return new URL(url).hostname.replace('www.', '')
 function cardFeatured(r) {
   return `<div class="card featured" onclick="${r.url ? `window.open('${r.url}','_blank')` : ''}">
     <div class="card-thumb-featured">
-      <span class="thumb-emoji-lg">${r.emoji || '🍳'}</span>
-      ${r.url ? `<span class="thumb-domain">${getDomain(r.url)}</span>` : ''}
+      ${r.thumbnail
+        ? `<img src="${r.thumbnail}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;" alt="" onerror="this.style.display='none'">`
+        : `<span class="thumb-emoji-lg">${r.emoji || '🍳'}</span>`}
+      ${r.url ? `<span class="thumb-domain" style="position:relative;z-index:1;background:rgba(255,255,255,0.8);padding:2px 6px;border-radius:2px;">${getDomain(r.url)}</span>` : ''}
       <div class="badge-latest">Latest</div>
       ${r.url ? `<a class="btn-play" href="${r.url}" target="_blank" onclick="event.stopPropagation()">▶</a>` : ''}
     </div>
@@ -426,8 +469,10 @@ function cardFeatured(r) {
 function cardList(r) {
   return `<div class="card list-item" onclick="${r.url ? `window.open('${r.url}','_blank')` : ''}">
     <div class="card-thumb-list">
-      <span class="thumb-emoji-sm">${r.emoji || '🍳'}</span>
-      ${r.url ? `<span class="thumb-domain">${getDomain(r.url)}</span>` : ''}
+      ${r.thumbnail
+        ? `<img src="${r.thumbnail}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;" alt="" onerror="this.style.display='none'">`
+        : `<span class="thumb-emoji-sm">${r.emoji || '🍳'}</span>`}
+      ${r.url ? `<span class="thumb-domain" style="position:relative;z-index:1;font-size:0.6rem;color:var(--muted);">${getDomain(r.url)}</span>` : ''}
       ${r.url ? `<a class="btn-play" href="${r.url}" target="_blank" onclick="event.stopPropagation()">▶</a>` : ''}
     </div>
     <div class="card-body-list">
@@ -460,6 +505,8 @@ function openModal() {
   document.getElementById('btnSave').textContent = '저장하기';
   document.getElementById('f_id').value = '';
   document.getElementById('f_url').value = '';
+  document.getElementById('f_thumbnail').value = '';
+  resetThumbPreview();
   document.getElementById('f_title').value = '';
   document.getElementById('f_ingredients').value = '';
   document.getElementById('f_memo').value = '';
@@ -481,6 +528,9 @@ function openEditModal(id) {
   document.getElementById('btnSave').textContent = '수정 저장';
   document.getElementById('f_id').value = r.id;
   document.getElementById('f_url').value = r.url || '';
+  document.getElementById('f_thumbnail').value = r.thumbnail || '';
+  if (r.thumbnail) showThumbImg(r.thumbnail);
+  else resetThumbPreview();
   document.getElementById('f_title').value = r.title || '';
   document.getElementById('f_ingredients').value = r.ingredients || '';
   document.getElementById('f_memo').value = r.memo || '';
@@ -514,6 +564,7 @@ async function saveRecipe() {
   const data = {
     title,
     url: document.getElementById('f_url').value.trim(),
+    thumbnail: document.getElementById('f_thumbnail').value || null,
     ingredients: document.getElementById('f_ingredients').value.trim(),
     tags: [...currentTags],
     emoji: selectedEmoji,
@@ -695,6 +746,65 @@ async function importData(e) {
   };
   reader.readAsText(file);
   e.target.value = '';
+}
+
+
+// ── THUMBNAIL ─────────────────────────────────────────
+function resetThumbPreview() {
+  document.getElementById('thumbPreview').style.display = 'none';
+  document.getElementById('thumbLoading').style.display = 'none';
+  document.getElementById('thumbEmpty').style.display = 'none';
+  document.getElementById('thumbImg').style.display = 'none';
+  document.getElementById('thumbRemove').style.display = 'none';
+}
+
+function showThumbImg(url) {
+  const preview = document.getElementById('thumbPreview');
+  preview.style.display = 'flex';
+  document.getElementById('thumbLoading').style.display = 'none';
+  document.getElementById('thumbEmpty').style.display = 'none';
+  const img = document.getElementById('thumbImg');
+  img.src = url;
+  img.style.display = 'block';
+  document.getElementById('thumbRemove').style.display = 'flex';
+}
+
+function removeThumbnail() {
+  document.getElementById('f_thumbnail').value = '';
+  resetThumbPreview();
+}
+
+async function fetchThumbnail() {
+  const url = document.getElementById('f_url').value.trim();
+  if (!url || document.getElementById('f_thumbnail').value) return;
+
+  const preview = document.getElementById('thumbPreview');
+  preview.style.display = 'flex';
+  document.getElementById('thumbLoading').style.display = 'flex';
+  document.getElementById('thumbEmpty').style.display = 'none';
+  document.getElementById('thumbImg').style.display = 'none';
+  document.getElementById('thumbRemove').style.display = 'none';
+
+  try {
+    const apiUrl = `https://api.microlink.io?url=${encodeURIComponent(url)}&screenshot=false`;
+    const res = await fetch(apiUrl);
+    const data = await res.json();
+
+    const imgUrl = data?.data?.image?.url || data?.data?.og?.image || null;
+
+    if (imgUrl) {
+      document.getElementById('f_thumbnail').value = imgUrl;
+      showThumbImg(imgUrl);
+    } else {
+      document.getElementById('thumbLoading').style.display = 'none';
+      document.getElementById('thumbEmpty').style.display = 'flex';
+      setTimeout(resetThumbPreview, 2000);
+    }
+  } catch(e) {
+    document.getElementById('thumbLoading').style.display = 'none';
+    document.getElementById('thumbEmpty').style.display = 'flex';
+    setTimeout(resetThumbPreview, 2000);
+  }
 }
 
 init();
