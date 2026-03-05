@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#F7F3EE">
-<title>Lisa's Recipe Book</title>
+<title>Lisa's Book</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -17,7 +17,6 @@
     --border: #DDD8D0;
     --white: #FFFFFF;
     --danger: #C0392B;
-    --success: #27AE60;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body { background: var(--ivory); font-family: 'DM Sans', sans-serif; color: var(--black); min-height: 100vh; }
@@ -34,13 +33,18 @@
   .btn-icon { background: none; border: none; cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--charcoal); transition: background 0.15s; }
   .btn-icon.active { background: var(--surface); }
 
+  /* TABS */
+  .tabs { display: flex; border-bottom: 1px solid var(--border); margin: 0 -20px; padding: 0 20px; }
+  .tab-btn { flex: 1; background: none; border: none; padding: 10px 0; font-size: 0.78rem; font-weight: 600; color: var(--muted); cursor: pointer; letter-spacing: 0.08em; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; }
+  .tab-btn.active { color: var(--black); border-bottom-color: var(--black); }
+
   /* SEARCH */
   #searchBar { display: none; padding-bottom: 12px; animation: fadeIn 0.15s ease; }
   #searchBar.open { display: block; }
   #searchBar input { width: 100%; background: var(--surface); border: none; border-radius: 6px; padding: 10px 16px; font-size: 0.9rem; color: var(--black); outline: none; }
 
   /* TAG FILTER */
-  .tag-filter { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 12px; scrollbar-width: none; }
+  .tag-filter { display: flex; gap: 6px; overflow-x: auto; padding: 10px 0; scrollbar-width: none; }
   .tag-filter-btn { background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 2px; padding: 5px 12px; font-size: 0.65rem; cursor: pointer; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500; white-space: nowrap; transition: all 0.15s; flex-shrink: 0; }
   .tag-filter-btn.active { background: var(--black); color: var(--ivory); border-color: var(--black); }
 
@@ -52,83 +56,54 @@
   .divider-bold { height: 1px; background: var(--black); margin-bottom: 20px; }
   .divider-thin { height: 1px; background: var(--border); margin: 20px 0 4px; }
 
-  /* GRID */
-  .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
-  .card.grid-item { display: flex; flex-direction: column; cursor: pointer; }
-  .card-thumb-grid {
-    width: 100%; aspect-ratio: 1/1;
-    background: linear-gradient(145deg, #EDE8E0 0%, #DDD5C8 100%);
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    position: relative; flex-shrink: 0;
-  }
-  .card-body-grid { padding: 8px 10px 10px; flex: 1; }
-  .card-title-grid {
-    font-family: 'Playfair Display', serif;
-    font-size: 0.82rem; font-weight: 700;
-    color: var(--black); line-height: 1.3;
-    overflow: hidden; text-overflow: ellipsis;
-    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-    margin-bottom: 4px;
-  }
-  .card-tags-grid { display: flex; flex-wrap: wrap; gap: 3px; }
-  .card-tag-grid {
-    display: inline-flex; align-items: center;
-    background: transparent; border: 1px solid var(--border);
-    color: var(--muted); border-radius: 2px;
-    padding: 1px 5px; font-size: 0.58rem;
-    letter-spacing: 0.06em; text-transform: uppercase;
-  }
-
   /* CARD */
   .card { background: var(--white); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); position: relative; transition: transform 0.18s ease, box-shadow 0.18s ease; }
   .card:active { transform: scale(0.985); box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
   .card.featured { display: block; cursor: pointer; }
-  .card.list-item { display: flex; align-items: stretch; cursor: pointer; }
   .card-thumb-featured { width: 100%; aspect-ratio: 4/3; background: linear-gradient(145deg, #EDE8E0 0%, #DDD5C8 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; position: relative; }
-  .card-thumb-list { width: 88px; min-width: 88px; background: linear-gradient(145deg, #EDE8E0 0%, #DDD5C8 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; position: relative; flex-shrink: 0; }
-  .thumb-emoji-lg { font-size: 3.5rem; line-height: 1; }
-  .thumb-emoji-sm { font-size: 2rem; line-height: 1; }
-  .thumb-domain { font-size: 0.6rem; color: var(--muted); letter-spacing: 0.05em; }
   .badge-latest { position: absolute; top: 12px; left: 12px; background: var(--black); color: var(--ivory); font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; padding: 4px 10px; }
   .btn-play { position: absolute; bottom: 10px; right: 10px; width: 32px; height: 32px; border-radius: 50%; background: var(--black); color: var(--ivory); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; text-decoration: none; box-shadow: 0 2px 8px rgba(0,0,0,0.25); }
   .card-body-featured { padding: 18px 20px 20px; }
-  .card-body-list { padding: 12px 14px; flex: 1; min-width: 0; }
   .card-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
   .card-tag { display: inline-flex; align-items: center; background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 2px; padding: 2px 7px; font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; }
   .card-title-lg { font-family: 'Playfair Display', serif; font-size: 1.25rem; font-weight: 700; color: var(--black); line-height: 1.3; margin-bottom: 6px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-  .card-title-sm { font-family: 'Playfair Display', serif; font-size: 0.95rem; font-weight: 700; color: var(--black); line-height: 1.3; margin-bottom: 6px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   .card-ingredients { font-size: 0.75rem; color: var(--muted); line-height: 1.5; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .card-memo { font-size: 0.75rem; color: var(--muted); line-height: 1.6; font-style: italic; margin-top: 6px; }
 
-  /* CARD ACTION BUTTONS */
+  /* GRID */
+  .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+  .card.grid-item { display: flex; flex-direction: column; cursor: pointer; }
+  .card-thumb-grid { width: 100%; aspect-ratio: 1/1; background: linear-gradient(145deg, #EDE8E0 0%, #DDD5C8 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; flex-shrink: 0; }
+  .card-body-grid { padding: 8px 10px 10px; flex: 1; }
+  .card-title-grid { font-family: 'Playfair Display', serif; font-size: 0.82rem; font-weight: 700; color: var(--black); line-height: 1.3; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; margin-bottom: 4px; }
+  .card-tags-grid { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 4px; }
+  .card-tag-grid { display: inline-flex; align-items: center; background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 2px; padding: 1px 5px; font-size: 0.58rem; letter-spacing: 0.06em; text-transform: uppercase; }
+
+  /* CARD ACTIONS */
   .card-actions { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s; }
   .card:hover .card-actions { opacity: 1; }
   .card-action-btn { background: rgba(255,255,255,0.9); border: 1px solid var(--border); border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.65rem; color: var(--muted); }
-  .card-action-btn:hover { background: var(--white); }
   .card-action-btn.edit:hover { color: var(--charcoal); }
   .card-action-btn.delete:hover { color: var(--danger); }
 
-  /* EMPTY */
+  /* EMPTY / LOADING */
   .empty { text-align: center; padding: 80px 20px; }
   .empty-icon { font-size: 2.5rem; margin-bottom: 16px; }
   .empty-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--charcoal); margin-bottom: 8px; }
   .empty-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.7; }
-
-  /* LOADING */
-  .loading { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 0.85rem; letter-spacing: 0.08em; }
+  .loading { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 0.85rem; }
   .loading-spinner { width: 28px; height: 28px; border: 2px solid var(--border); border-top-color: var(--black); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 16px; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
   /* TOAST */
-  .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--black); color: var(--ivory); padding: 10px 20px; border-radius: 50px; font-size: 0.8rem; letter-spacing: 0.05em; opacity: 0; transition: all 0.25s; z-index: 500; white-space: nowrap; pointer-events: none; }
+  .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--black); color: var(--ivory); padding: 10px 20px; border-radius: 50px; font-size: 0.8rem; opacity: 0; transition: all 0.25s; z-index: 500; white-space: nowrap; pointer-events: none; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
   /* FAB */
   .fab { position: fixed; bottom: 28px; right: 24px; background: var(--black); color: var(--ivory); border: none; border-radius: 50%; width: 52px; height: 52px; font-size: 1.3rem; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; z-index: 50; transition: transform 0.15s; }
   .fab:active { transform: scale(0.93); }
 
-  /* MODAL BASE */
+  /* MODAL */
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(17,17,16,0.6); z-index: 300; align-items: flex-end; justify-content: center; backdrop-filter: blur(4px); }
   .modal-overlay.open { display: flex; }
   .modal { background: var(--ivory); width: 100%; max-width: 480px; border-radius: 16px 16px 0 0; max-height: 92vh; overflow-y: auto; animation: slideUp 0.3s cubic-bezier(0.32,0.72,0,1); padding-bottom: env(safe-area-inset-bottom); }
@@ -150,7 +125,7 @@
   .tag-chip-remove { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 0.65rem; padding: 0; line-height: 1; }
   .tag-real-input { border: none; outline: none; background: transparent; font-size: 0.82rem; flex: 1; min-width: 80px; font-family: 'DM Sans', sans-serif; color: var(--charcoal); padding: 0; }
   .tag-presets { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
-  .tag-preset-btn { font-size: 0.7rem; color: var(--muted); border: 1px dashed var(--border); border-radius: 2px; padding: 2px 8px; cursor: pointer; background: none; letter-spacing: 0.06em; font-family: 'DM Sans', sans-serif; }
+  .tag-preset-btn { font-size: 0.7rem; color: var(--muted); border: 1px dashed var(--border); border-radius: 2px; padding: 2px 8px; cursor: pointer; background: none; letter-spacing: 0.06em; }
 
   /* EMOJI */
   .emoji-row { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 6px; }
@@ -160,34 +135,6 @@
   .btn-save { width: 100%; background: var(--black); color: var(--ivory); border: none; border-radius: 4px; padding: 15px; font-size: 0.82rem; font-weight: 600; cursor: pointer; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 4px; }
   .btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  /* THUMBNAIL PREVIEW */
-  .thumb-preview {
-    width: 100%; aspect-ratio: 16/9;
-    border-radius: 8px; overflow: hidden;
-    background: var(--surface);
-    display: flex; align-items: center; justify-content: center;
-    margin-top: 8px; position: relative;
-  }
-  .thumb-preview img { width: 100%; height: 100%; object-fit: cover; }
-  .thumb-preview .thumb-loading {
-    display: flex; flex-direction: column; align-items: center; gap: 8px;
-    color: var(--muted); font-size: 0.75rem; letter-spacing: 0.08em;
-  }
-  .thumb-preview .thumb-empty { color: var(--muted); font-size: 0.75rem; letter-spacing: 0.08em; }
-  .thumb-remove {
-    position: absolute; top: 6px; right: 6px;
-    background: rgba(0,0,0,0.5); color: #fff;
-    border: none; border-radius: 50%; width: 22px; height: 22px;
-    font-size: 0.65rem; cursor: pointer; display: flex;
-    align-items: center; justify-content: center;
-  }
-
-  /* CARD WITH THUMBNAIL IMAGE */
-  .card-thumb-img {
-    width: 100%; height: 100%;
-    object-fit: cover; display: block;
-  }
-
   /* SETTINGS */
   .settings-section-title { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 14px; }
   .settings-tag-list { display: flex; flex-direction: column; gap: 2px; }
@@ -195,13 +142,12 @@
   .settings-tag-row.dragging { opacity: 0.5; box-shadow: 0 4px 16px rgba(0,0,0,0.15); transform: scale(1.02); background: var(--surface); }
   .settings-tag-row.drag-over { border-color: var(--black); border-style: dashed; }
   .drag-handle { color: var(--muted); font-size: 1rem; cursor: grab; padding: 0 8px 0 0; line-height: 1; touch-action: none; }
-  .drag-handle:active { cursor: grabbing; }
   .settings-tag-name { font-size: 0.85rem; color: var(--charcoal); }
   .settings-tag-usage { font-size: 0.72rem; color: var(--muted); margin-left: 8px; }
   .btn-tag-delete { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 0.75rem; padding: 4px 8px; border-radius: 3px; transition: all 0.12s; }
   .btn-tag-delete:hover { background: #fde8e8; color: var(--danger); }
   .add-tag-row { display: flex; gap: 8px; align-items: center; margin-top: 14px; }
-  .add-tag-input { flex: 1; border: none; border-bottom: 1px solid var(--border); padding: 9px 0; font-size: 0.88rem; background: transparent; outline: none; color: var(--black); font-family: 'DM Sans', sans-serif; }
+  .add-tag-input { flex: 1; border: none; border-bottom: 1px solid var(--border); padding: 9px 0; font-size: 0.88rem; background: transparent; outline: none; color: var(--black); }
   .btn-tag-add { background: var(--black); color: var(--ivory); border: none; border-radius: 4px; padding: 9px 16px; font-size: 0.72rem; font-weight: 600; cursor: pointer; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; }
   .settings-divider { height: 1px; background: var(--border); margin: 28px 0; }
   .settings-empty { text-align: center; padding: 24px 0; color: var(--muted); font-size: 0.82rem; }
@@ -216,15 +162,19 @@
   <div class="header-top">
     <div>
       <div class="logo-sub">Lisa's</div>
-      <div class="logo-main">Recipe Book</div>
+      <div class="logo-main" id="logoMain">Recipe Book</div>
     </div>
     <div class="header-actions">
       <button class="btn-icon" id="btnSearch" onclick="toggleSearch()">🔍</button>
       <button class="btn-icon" id="btnSettings" onclick="openSettings()">⚙️</button>
     </div>
   </div>
+  <div class="tabs">
+    <button class="tab-btn active" id="tabRecipe" onclick="switchTab('recipe')">🍳 Recipe</button>
+    <button class="tab-btn" id="tabWorkout" onclick="switchTab('workout')">🏋️ Workout</button>
+  </div>
   <div id="searchBar">
-    <input type="text" id="searchInput" placeholder="요리 이름, 재료로 검색..." oninput="render()">
+    <input type="text" id="searchInput" placeholder="검색..." oninput="render()">
   </div>
   <div class="tag-filter" id="tagFilter"></div>
 </header>
@@ -233,12 +183,12 @@
 <button class="fab" onclick="openModal()">+</button>
 <div class="toast" id="toast"></div>
 
-<!-- 레시피 추가/수정 MODAL -->
+<!-- 추가/수정 MODAL -->
 <div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
   <div class="modal">
     <div class="modal-handle-row"><div class="modal-handle"></div></div>
     <div class="modal-header">
-      <div class="modal-title" id="modalTitle">새 레시피</div>
+      <div class="modal-title" id="modalTitle">새 항목</div>
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body">
@@ -246,19 +196,25 @@
       <input type="hidden" id="f_thumbnail">
       <div class="field">
         <label>URL</label>
-        <input type="url" id="f_url" placeholder="facebook.com/reel/..." onblur="fetchThumbnail()">
-        <div id="thumbPreview" style="display:none; margin-top:10px; position:relative; border-radius:8px; overflow:hidden; background:var(--surface); aspect-ratio:16/9; display:none; align-items:center; justify-content:center;">
-          <div id="thumbLoading" style="display:none; flex-direction:column; align-items:center; gap:8px; color:var(--muted); font-size:0.75rem;">
+        <input type="url" id="f_url" placeholder="facebook.com/reel/... 또는 youtube.com/shorts/..." onblur="fetchThumbnail()">
+        <div id="thumbPreview" style="display:none; margin-top:10px; position:relative; border-radius:8px; overflow:hidden; background:var(--surface); aspect-ratio:16/9; align-items:center; justify-content:center;">
+          <div id="thumbLoading" style="display:none; flex-direction:column; align-items:center; gap:8px; color:var(--muted); font-size:0.75rem; padding:20px;">
             <div class="loading-spinner" style="width:20px;height:20px;margin:0;"></div>
             <span>썸네일 가져오는 중...</span>
           </div>
           <div id="thumbEmpty" style="display:none; color:var(--muted); font-size:0.75rem; padding:20px;">썸네일을 가져올 수 없어요 😅</div>
           <img id="thumbImg" style="display:none; width:100%; height:100%; object-fit:cover;" alt="썸네일">
-          <button onclick="removeThumbnail()" style="display:none; position:absolute; top:6px; right:6px; background:rgba(0,0,0,0.5); color:#fff; border:none; border-radius:50%; width:24px; height:24px; font-size:0.7rem; cursor:pointer;" id="thumbRemove">✕</button>
+          <button onclick="removeThumbnail()" id="thumbRemove" style="display:none; position:absolute; top:6px; right:6px; background:rgba(0,0,0,0.5); color:#fff; border:none; border-radius:50%; width:24px; height:24px; font-size:0.7rem; cursor:pointer;">✕</button>
         </div>
       </div>
-      <div class="field"><label>요리 이름</label><input type="text" id="f_title" placeholder="예: 간장계란볶음밥"></div>
-      <div class="field"><label>주요 재료</label><input type="text" id="f_ingredients" placeholder="예: 계란, 밥, 간장, 파"></div>
+      <div class="field">
+        <label id="f_title_label">이름</label>
+        <input type="text" id="f_title" placeholder="이름을 입력해주세요">
+      </div>
+      <div class="field" id="f_ingredients_wrap">
+        <label>주요 재료</label>
+        <input type="text" id="f_ingredients" placeholder="예: 계란, 밥, 간장, 파">
+      </div>
       <div class="field">
         <label>태그</label>
         <div class="tag-input-wrap" id="tagWrap" onclick="document.getElementById('tagRealInput').focus()">
@@ -270,8 +226,11 @@
         <label>이모지</label>
         <div class="emoji-row" id="emojiRow"></div>
       </div>
-      <div class="field"><label>메모</label><textarea id="f_memo" rows="2" placeholder="양념 비율, 팁..."></textarea></div>
-      <button class="btn-save" id="btnSave" onclick="saveRecipe()">저장하기</button>
+      <div class="field">
+        <label>메모</label>
+        <textarea id="f_memo" rows="2" placeholder="팁, 주의사항..."></textarea>
+      </div>
+      <button class="btn-save" id="btnSave" onclick="saveItem()">저장하기</button>
     </div>
   </div>
 </div>
@@ -286,7 +245,7 @@
     </div>
     <div class="modal-body">
       <div>
-        <div class="settings-section-title">태그 관리</div>
+        <div class="settings-section-title" id="settingsTagTitle">태그 관리</div>
         <div class="settings-tag-list" id="settingsTagList"></div>
         <div class="add-tag-row">
           <input class="add-tag-input" id="newTagInput" placeholder="새 태그 이름 입력" onkeydown="if(event.key==='Enter') addNewTag()">
@@ -297,9 +256,9 @@
       <div>
         <div class="settings-section-title">데이터</div>
         <div style="display:flex;flex-direction:column;gap:10px;">
-          <button onclick="exportData()" style="width:100%;background:transparent;border:1px solid var(--border);border-radius:4px;padding:12px;font-size:0.8rem;color:var(--charcoal);cursor:pointer;letter-spacing:0.08em;text-align:left;">📥 &nbsp;데이터 백업 (JSON 다운로드)</button>
-          <label style="width:100%;background:transparent;border:1px solid var(--border);border-radius:4px;padding:12px;font-size:0.8rem;color:var(--charcoal);cursor:pointer;letter-spacing:0.08em;display:block;">
-            📤 &nbsp;데이터 복원 (JSON 불러오기)
+          <button onclick="exportData()" style="width:100%;background:transparent;border:1px solid var(--border);border-radius:4px;padding:12px;font-size:0.8rem;color:var(--charcoal);cursor:pointer;text-align:left;">📥 &nbsp;데이터 백업 (JSON)</button>
+          <label style="width:100%;background:transparent;border:1px solid var(--border);border-radius:4px;padding:12px;font-size:0.8rem;color:var(--charcoal);cursor:pointer;display:block;">
+            📤 &nbsp;데이터 복원 (JSON)
             <input type="file" accept=".json" onchange="importData(event)" style="display:none">
           </label>
         </div>
@@ -309,7 +268,7 @@
 </div>
 
 <script>
-// ── SUPABASE 설정 ─────────────────────────────────────
+// ── SUPABASE ──────────────────────────────────────────
 const SUPABASE_URL = 'https://wyfstijjrfdajbsbmban.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5ZnN0aWpqcmZkYWpic2JtYmFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2NjM5NzQsImV4cCI6MjA4ODIzOTk3NH0.Mvl5wRpdZM20ox2chwLNK5KURROtROFVUu_TJPcDkNI';
 
@@ -320,67 +279,58 @@ const api = {
     'Authorization': `Bearer ${SUPABASE_KEY}`,
     'Prefer': 'return=representation',
   },
-
-  async getRecipes() {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/recipes?order=created_at.desc`, { headers: this.headers });
+  async getItems(table) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?order=created_at.desc`, { headers: this.headers });
     return res.json();
   },
-
-  async updateLastViewed(id) {
-    await fetch(`${SUPABASE_URL}/rest/v1/recipes?id=eq.${id}`, {
-      method: 'PATCH', headers: this.headers,
-      body: JSON.stringify({ last_viewed_at: new Date().toISOString() })
-    });
-  },
-
-  async getTags() {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/tags?order=sort_order.asc,id.asc`, { headers: this.headers });
+  async getTags(category) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/tags?category=eq.${category}&order=sort_order.asc,id.asc`, { headers: this.headers });
     return res.json();
   },
-
-  async addRecipe(data) {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/recipes`, {
+  async addItem(table, data) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
       method: 'POST', headers: this.headers, body: JSON.stringify(data)
     });
     return res.json();
   },
-
-  async updateRecipe(id, data) {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/recipes?id=eq.${id}`, {
+  async updateItem(table, id, data) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
       method: 'PATCH', headers: this.headers, body: JSON.stringify(data)
     });
     return res.json();
   },
-
-  async deleteRecipe(id) {
-    await fetch(`${SUPABASE_URL}/rest/v1/recipes?id=eq.${id}`, {
-      method: 'DELETE', headers: this.headers
+  async deleteItem(table, id) {
+    await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, { method: 'DELETE', headers: this.headers });
+  },
+  async updateLastViewed(table, id) {
+    await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+      method: 'PATCH', headers: this.headers,
+      body: JSON.stringify({ last_viewed_at: new Date().toISOString() })
     });
   },
-
-  async addTag(name) {
+  async addTag(name, category) {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/tags`, {
-      method: 'POST', headers: this.headers, body: JSON.stringify({ name })
+      method: 'POST', headers: this.headers,
+      body: JSON.stringify({ name, category, sort_order: 999 })
     });
     return res.json();
   },
-
+  async deleteTag(id) {
+    await fetch(`${SUPABASE_URL}/rest/v1/tags?id=eq.${id}`, { method: 'DELETE', headers: this.headers });
+  },
   async updateTagOrder(id, sort_order) {
     await fetch(`${SUPABASE_URL}/rest/v1/tags?id=eq.${id}`, {
       method: 'PATCH', headers: this.headers, body: JSON.stringify({ sort_order })
     });
   },
-
-  async deleteTag(id) {
-    await fetch(`${SUPABASE_URL}/rest/v1/tags?id=eq.${id}`, {
-      method: 'DELETE', headers: this.headers
-    });
-  },
 };
 
 // ── STATE ─────────────────────────────────────────────
-const EMOJIS = ['🍳','🥘','🍜','🍲','🥗','🍱','🍚','🥩','🍗','🥦','🍝','🍛','🥟','🍤','🎂'];
-let recipes = [];
+const RECIPE_EMOJIS = ['🍳','🥘','🍜','🍲','🥗','🍱','🍚','🥩','🍗','🥦','🍝','🍛','🥟','🍤','🎂'];
+const WORKOUT_EMOJIS = ['💪','🏋️','🤸','🧘','🏃','⚡','🔥','🎯','🦵','🦾','🏊','🚴','🤼','🥊','🧗'];
+
+let currentTab = 'recipe';
+let items = [];
 let userTags = [];
 let activeTag = 'all';
 let currentTags = [];
@@ -389,61 +339,30 @@ let editingId = null;
 
 // ── INIT ──────────────────────────────────────────────
 async function init() {
+  await loadTabData();
+}
+
+async function loadTabData() {
   showLoading();
-  buildEmojiPicker();
+  const table = currentTab === 'recipe' ? 'recipes' : 'workouts';
   try {
-    [recipes, userTags] = await Promise.all([api.getRecipes(), api.getTags()]);
-  } catch(e) {
-    showToast('⚠️ 데이터 로딩 실패. 네트워크를 확인해주세요.');
-  }
+    [items, userTags] = await Promise.all([api.getItems(table), api.getTags(currentTab)]);
+  } catch(e) { showToast('⚠️ 데이터 로딩 실패'); }
   buildTagFilter();
   render();
 }
 
-function showLoading() {
-  document.getElementById('main').innerHTML = `<div class="loading"><div class="loading-spinner"></div>불러오는 중...</div>`;
-}
-
-function buildEmojiPicker() {
-  const er = document.getElementById('emojiRow');
-  er.innerHTML = '';
-  EMOJIS.forEach((e, i) => {
-    const el = document.createElement('span');
-    el.className = 'emoji-opt' + (i === 0 ? ' selected' : '');
-    el.textContent = e;
-    el.onclick = () => {
-      document.querySelectorAll('.emoji-opt').forEach(x => x.classList.remove('selected'));
-      el.classList.add('selected');
-      selectedEmoji = e;
-    };
-    er.appendChild(el);
-  });
-}
-
-function buildTagFilter() {
-  const tf = document.getElementById('tagFilter');
-  tf.innerHTML = '';
-  ['all', ...userTags.map(t => t.name)].forEach(tag => {
-    const btn = document.createElement('button');
-    btn.className = 'tag-filter-btn' + (tag === activeTag ? ' active' : '');
-    btn.textContent = tag === 'all' ? 'All' : tag;
-    btn.dataset.tag = tag;
-    btn.onclick = () => {
-      document.querySelectorAll('.tag-filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      activeTag = tag;
-      render();
-    };
-    tf.appendChild(btn);
-  });
-}
-
-// ── TOAST ─────────────────────────────────────────────
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+// ── TAB ───────────────────────────────────────────────
+function switchTab(tab) {
+  currentTab = tab;
+  activeTag = 'all';
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchBar').classList.remove('open');
+  document.getElementById('btnSearch').classList.remove('active');
+  document.getElementById('tabRecipe').classList.toggle('active', tab === 'recipe');
+  document.getElementById('tabWorkout').classList.toggle('active', tab === 'workout');
+  document.getElementById('logoMain').textContent = tab === 'recipe' ? 'Recipe Book' : 'Workout Book';
+  loadTabData();
 }
 
 // ── SEARCH ────────────────────────────────────────────
@@ -456,10 +375,40 @@ function toggleSearch() {
   else { document.getElementById('searchInput').value = ''; render(); }
 }
 
+// ── TAG FILTER ────────────────────────────────────────
+function buildTagFilter() {
+  const tf = document.getElementById('tagFilter');
+  tf.innerHTML = '';
+  ['all', ...userTags.map(t => t.name)].forEach(tag => {
+    const btn = document.createElement('button');
+    btn.className = 'tag-filter-btn' + (tag === activeTag ? ' active' : '');
+    btn.textContent = tag === 'all' ? 'All' : tag;
+    btn.onclick = () => {
+      document.querySelectorAll('.tag-filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeTag = tag;
+      render();
+    };
+    tf.appendChild(btn);
+  });
+}
+
+// ── LOADING / TOAST ───────────────────────────────────
+function showLoading() {
+  document.getElementById('main').innerHTML = `<div class="loading"><div class="loading-spinner"></div>불러오는 중...</div>`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
 // ── RENDER ────────────────────────────────────────────
 function render() {
   const q = (document.getElementById('searchInput')?.value || '').toLowerCase();
-  const filtered = recipes.filter(r => {
+  const filtered = items.filter(r => {
     const ms = !q || r.title.toLowerCase().includes(q) ||
       (r.ingredients || '').toLowerCase().includes(q) ||
       (r.tags || []).some(t => t.toLowerCase().includes(q));
@@ -468,24 +417,69 @@ function render() {
   });
 
   const main = document.getElementById('main');
+  const isRecipe = currentTab === 'recipe';
+
   if (filtered.length === 0) {
-    main.innerHTML = `<div class="empty"><div class="empty-icon">🍽️</div><div class="empty-title">${recipes.length === 0 ? '첫 레시피를 저장해보세요' : '검색 결과가 없어요'}</div><div class="empty-desc">${recipes.length === 0 ? '아래 + 버튼으로 릴스 URL과<br>요리 정보를 저장할 수 있어요' : '다른 키워드로 검색해보세요'}</div></div>`;
+    main.innerHTML = `<div class="empty">
+      <div class="empty-icon">${isRecipe ? '🍽️' : '💪'}</div>
+      <div class="empty-title">${items.length === 0 ? (isRecipe ? '첫 레시피를 저장해보세요' : '첫 운동 영상을 저장해보세요') : '검색 결과가 없어요'}</div>
+      <div class="empty-desc">${items.length === 0 ? '아래 + 버튼으로 URL과<br>정보를 저장할 수 있어요' : '다른 키워드로 검색해보세요'}</div>
+    </div>`;
     return;
   }
 
-  // 최근 본 레시피 찾기 (last_viewed_at 기준)
   const viewed = filtered.filter(r => r.last_viewed_at).sort((a, b) =>
     new Date(b.last_viewed_at) - new Date(a.last_viewed_at)
   );
   const featured = viewed.length > 0 ? viewed[0] : filtered[0];
   const rest = filtered.filter(r => r.id !== featured.id);
+  const defaultEmoji = isRecipe ? '🍳' : '💪';
+  const countLabel = isRecipe ? 'Recipes' : 'Workouts';
 
-  let html = `<div class="count-bar"><span class="count-num">${filtered.length}</span><span class="count-label">Recipes</span></div><div class="divider-bold"></div>${cardFeatured(featured)}`;
+  let html = `<div class="count-bar"><span class="count-num">${filtered.length}</span><span class="count-label">${countLabel}</span></div><div class="divider-bold"></div>`;
+
+  // Featured card
+  html += `<div class="card featured" onclick="viewItem(${featured.id})">
+    <div class="card-thumb-featured">
+      ${featured.thumbnail
+        ? `<img src="${featured.thumbnail}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;" alt="" onerror="this.style.display='none'">`
+        : `<span style="font-size:3.5rem;">${featured.emoji || defaultEmoji}</span>`}
+      ${featured.url ? `<span style="position:relative;z-index:1;background:rgba(255,255,255,0.8);padding:2px 6px;border-radius:2px;font-size:0.6rem;color:var(--muted);">${getDomain(featured.url)}</span>` : ''}
+      <div class="badge-latest">Latest</div>
+      ${featured.url ? `<a class="btn-play" href="${featured.url}" target="_blank" onclick="event.stopPropagation()">▶</a>` : ''}
+    </div>
+    <div class="card-body-featured">
+      ${featured.tags?.length ? `<div class="card-tags">${featured.tags.slice(0,3).map(t=>`<span class="card-tag">${t}</span>`).join('')}</div>` : ''}
+      <div class="card-title-lg">${featured.title}</div>
+      ${featured.ingredients ? `<div class="card-ingredients">${featured.ingredients}</div>` : ''}
+      ${featured.memo ? `<div class="card-memo">"${featured.memo}"</div>` : ''}
+    </div>
+    <div class="card-actions">
+      <button class="card-action-btn edit" onclick="event.stopPropagation();openEditModal(${featured.id})">✏️</button>
+      <button class="card-action-btn delete" onclick="event.stopPropagation();deleteItem(${featured.id})">✕</button>
+    </div>
+  </div>`;
 
   if (rest.length > 0) {
-    html += `<div class="divider-thin"></div>`;
-    html += `<div class="grid-container">`;
-    rest.forEach(r => { html += cardGrid(r); });
+    html += `<div class="divider-thin"></div><div class="grid-container">`;
+    rest.forEach(r => {
+      html += `<div class="card grid-item" onclick="viewItem(${r.id})">
+        <div class="card-thumb-grid">
+          ${r.thumbnail
+            ? `<img src="${r.thumbnail}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;" alt="" onerror="this.style.display='none'">`
+            : `<span style="font-size:2.2rem;">${r.emoji || defaultEmoji}</span>`}
+          ${r.url ? `<a class="btn-play" href="${r.url}" target="_blank" onclick="event.stopPropagation()" style="bottom:6px;right:6px;width:26px;height:26px;font-size:0.55rem;">▶</a>` : ''}
+        </div>
+        <div class="card-body-grid">
+          ${r.tags?.length ? `<div class="card-tags-grid">${r.tags.slice(0,2).map(t=>`<span class="card-tag-grid">${t}</span>`).join('')}</div>` : ''}
+          <div class="card-title-grid">${r.title}</div>
+        </div>
+        <div class="card-actions">
+          <button class="card-action-btn edit" onclick="event.stopPropagation();openEditModal(${r.id})">✏️</button>
+          <button class="card-action-btn delete" onclick="event.stopPropagation();deleteItem(${r.id})">✕</button>
+        </div>
+      </div>`;
+    });
     html += `</div>`;
   }
   main.innerHTML = html;
@@ -493,142 +487,78 @@ function render() {
 
 function getDomain(url) { try { return new URL(url).hostname.replace('www.', ''); } catch { return ''; } }
 
-function cardFeatured(r) {
-  return `<div class="card featured" onclick="viewRecipe(${r.id})">
-    <div class="card-thumb-featured">
-      ${r.thumbnail
-        ? `<img src="${r.thumbnail}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;" alt="" onerror="this.style.display='none'">`
-        : `<span class="thumb-emoji-lg">${r.emoji || '🍳'}</span>`}
-      ${r.url ? `<span class="thumb-domain" style="position:relative;z-index:1;background:rgba(255,255,255,0.8);padding:2px 6px;border-radius:2px;">${getDomain(r.url)}</span>` : ''}
-      <div class="badge-latest">Latest</div>
-      ${r.url ? `<a class="btn-play" href="${r.url}" target="_blank" onclick="event.stopPropagation()">▶</a>` : ''}
-    </div>
-    <div class="card-body-featured">
-      ${r.tags?.length ? `<div class="card-tags">${r.tags.slice(0,3).map(t=>`<span class="card-tag">${t}</span>`).join('')}</div>` : ''}
-      <div class="card-title-lg">${r.title}</div>
-      ${r.ingredients ? `<div class="card-ingredients">${r.ingredients}</div>` : ''}
-      ${r.memo ? `<div class="card-memo">"${r.memo}"</div>` : ''}
-    </div>
-    <div class="card-actions">
-      <button class="card-action-btn edit" onclick="event.stopPropagation();openEditModal(${r.id})" title="수정">✏️</button>
-      <button class="card-action-btn delete" onclick="event.stopPropagation();deleteRecipe(${r.id})" title="삭제">✕</button>
-    </div>
-  </div>`;
-}
-
-function cardList(r) {
-  return `<div class="card list-item" onclick="viewRecipe(${r.id})">
-    <div class="card-thumb-list">
-      ${r.thumbnail
-        ? `<img src="${r.thumbnail}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;" alt="" onerror="this.style.display='none'">`
-        : `<span class="thumb-emoji-sm">${r.emoji || '🍳'}</span>`}
-      ${r.url ? `<span class="thumb-domain" style="position:relative;z-index:1;font-size:0.6rem;color:var(--muted);">${getDomain(r.url)}</span>` : ''}
-      ${r.url ? `<a class="btn-play" href="${r.url}" target="_blank" onclick="event.stopPropagation()">▶</a>` : ''}
-    </div>
-    <div class="card-body-list">
-      ${r.tags?.length ? `<div class="card-tags">${r.tags.slice(0,3).map(t=>`<span class="card-tag">${t}</span>`).join('')}</div>` : ''}
-      <div class="card-title-sm">${r.title}</div>
-      ${r.ingredients ? `<div class="card-ingredients">${r.ingredients}</div>` : ''}
-    </div>
-    <div class="card-actions">
-      <button class="card-action-btn edit" onclick="event.stopPropagation();openEditModal(${r.id})" title="수정">✏️</button>
-      <button class="card-action-btn delete" onclick="event.stopPropagation();deleteRecipe(${r.id})" title="삭제">✕</button>
-    </div>
-  </div>`;
-}
-
-// ── DELETE ────────────────────────────────────────────
-function cardGrid(r) {
-  return `<div class="card grid-item" onclick="viewRecipe(${r.id})">
-    <div class="card-thumb-grid">
-      ${r.thumbnail
-        ? `<img src="${r.thumbnail}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;" alt="" onerror="this.style.display='none'">`
-        : `<span style="font-size:2.2rem;">${r.emoji || '🍳'}</span>`}
-      ${r.url ? `<a class="btn-play" href="${r.url}" target="_blank" onclick="event.stopPropagation()" style="bottom:6px;right:6px;width:26px;height:26px;font-size:0.55rem;">▶</a>` : ''}
-    </div>
-    <div class="card-body-grid">
-      ${r.tags?.length ? `<div class="card-tags-grid">${r.tags.slice(0,2).map(t=>`<span class="card-tag-grid">${t}</span>`).join('')}</div>` : ''}
-      <div class="card-title-grid">${r.title}</div>
-    </div>
-    <div class="card-actions">
-      <button class="card-action-btn edit" onclick="event.stopPropagation();openEditModal(${r.id})" title="수정">✏️</button>
-      <button class="card-action-btn delete" onclick="event.stopPropagation();deleteRecipe(${r.id})" title="삭제">✕</button>
-    </div>
-  </div>`;
-}
-
-async function viewRecipe(id) {
-  const r = recipes.find(r => r.id === id);
+// ── VIEW / DELETE ─────────────────────────────────────
+async function viewItem(id) {
+  const r = items.find(r => r.id === id);
   if (!r) return;
+  const table = currentTab === 'recipe' ? 'recipes' : 'workouts';
   try {
-    await api.updateLastViewed(id);
-    recipes = recipes.map(rec => rec.id === id
-      ? { ...rec, last_viewed_at: new Date().toISOString() }
-      : rec
-    );
+    await api.updateLastViewed(table, id);
+    items = items.map(item => item.id === id ? { ...item, last_viewed_at: new Date().toISOString() } : item);
     render();
   } catch(e) {}
   if (r.url) window.open(r.url, '_blank');
 }
 
-async function deleteRecipe(id) {
+async function deleteItem(id) {
   if (!confirm('삭제할까요?')) return;
+  const table = currentTab === 'recipe' ? 'recipes' : 'workouts';
   try {
-    await api.deleteRecipe(id);
-    recipes = recipes.filter(r => r.id !== id);
+    await api.deleteItem(table, id);
+    items = items.filter(r => r.id !== id);
     render();
     showToast('🗑️ 삭제되었어요');
   } catch(e) { showToast('⚠️ 삭제 실패'); }
 }
 
-// ── RECIPE MODAL (추가/수정 공용) ─────────────────────
+// ── MODAL ─────────────────────────────────────────────
 function openModal() {
   editingId = null;
-  document.getElementById('modalTitle').textContent = '새 레시피';
+  const isRecipe = currentTab === 'recipe';
+  document.getElementById('modalTitle').textContent = isRecipe ? '새 레시피' : '새 운동';
   document.getElementById('btnSave').textContent = '저장하기';
   document.getElementById('f_id').value = '';
-  document.getElementById('f_url').value = '';
   document.getElementById('f_thumbnail').value = '';
-  resetThumbPreview();
+  document.getElementById('f_url').value = '';
   document.getElementById('f_title').value = '';
+  document.getElementById('f_title_label').textContent = isRecipe ? '요리 이름' : '운동 이름';
+  document.getElementById('f_title').placeholder = isRecipe ? '예: 간장계란볶음밥' : '예: 하체 스쿼트 루틴';
+  document.getElementById('f_ingredients_wrap').style.display = isRecipe ? 'block' : 'none';
   document.getElementById('f_ingredients').value = '';
   document.getElementById('f_memo').value = '';
   currentTags = [];
-  selectedEmoji = '🍳';
-  document.querySelectorAll('.emoji-opt').forEach((el, i) => el.classList.toggle('selected', i === 0));
+  selectedEmoji = isRecipe ? '🍳' : '💪';
+  buildEmojiPicker();
   renderTagChips();
   renderPresets();
+  resetThumbPreview();
   document.getElementById('modalOverlay').classList.add('open');
   setTimeout(() => document.getElementById('f_url').focus(), 200);
 }
 
 function openEditModal(id) {
-  const r = recipes.find(r => r.id === id);
+  const r = items.find(r => r.id === id);
   if (!r) return;
-
   editingId = id;
-  document.getElementById('modalTitle').textContent = '레시피 수정';
+  const isRecipe = currentTab === 'recipe';
+  document.getElementById('modalTitle').textContent = isRecipe ? '레시피 수정' : '운동 수정';
   document.getElementById('btnSave').textContent = '수정 저장';
   document.getElementById('f_id').value = r.id;
-  document.getElementById('f_url').value = r.url || '';
   document.getElementById('f_thumbnail').value = r.thumbnail || '';
-  if (r.thumbnail) showThumbImg(r.thumbnail);
-  else resetThumbPreview();
+  document.getElementById('f_url').value = r.url || '';
   document.getElementById('f_title').value = r.title || '';
+  document.getElementById('f_title_label').textContent = isRecipe ? '요리 이름' : '운동 이름';
+  document.getElementById('f_title').placeholder = isRecipe ? '예: 간장계란볶음밥' : '예: 하체 스쿼트 루틴';
+  document.getElementById('f_ingredients_wrap').style.display = isRecipe ? 'block' : 'none';
   document.getElementById('f_ingredients').value = r.ingredients || '';
   document.getElementById('f_memo').value = r.memo || '';
-
-  // 태그 설정
   currentTags = [...(r.tags || [])];
+  selectedEmoji = r.emoji || (isRecipe ? '🍳' : '💪');
+  buildEmojiPicker();
   renderTagChips();
   renderPresets();
-
-  // 이모지 설정
-  selectedEmoji = r.emoji || '🍳';
-  document.querySelectorAll('.emoji-opt').forEach(el => {
-    el.classList.toggle('selected', el.textContent === selectedEmoji);
-  });
-
+  if (r.thumbnail) showThumbImg(r.thumbnail);
+  else resetThumbPreview();
   document.getElementById('modalOverlay').classList.add('open');
   setTimeout(() => document.getElementById('f_url').focus(), 200);
 }
@@ -636,45 +566,53 @@ function openEditModal(id) {
 function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
 function handleOverlayClick(e) { if (e.target.id === 'modalOverlay') closeModal(); }
 
-async function saveRecipe() {
+async function saveItem() {
   const title = document.getElementById('f_title').value.trim();
-  if (!title) { alert('요리 이름을 입력해주세요'); return; }
-
+  if (!title) { alert('이름을 입력해주세요'); return; }
   const btn = document.getElementById('btnSave');
-  btn.disabled = true;
-  btn.textContent = '저장 중...';
-
+  btn.disabled = true; btn.textContent = '저장 중...';
+  const table = currentTab === 'recipe' ? 'recipes' : 'workouts';
   const data = {
     title,
     url: document.getElementById('f_url').value.trim(),
     thumbnail: document.getElementById('f_thumbnail').value || null,
-    ingredients: document.getElementById('f_ingredients').value.trim(),
     tags: [...currentTags],
     emoji: selectedEmoji,
     memo: document.getElementById('f_memo').value.trim(),
   };
-
+  if (currentTab === 'recipe') data.ingredients = document.getElementById('f_ingredients').value.trim();
   try {
     if (editingId) {
-      // 수정
-      const updated = await api.updateRecipe(editingId, data);
-      recipes = recipes.map(r => r.id === editingId ? { ...r, ...data } : r);
+      await api.updateItem(table, editingId, data);
+      items = items.map(r => r.id === editingId ? { ...r, ...data } : r);
       showToast('✅ 수정되었어요');
     } else {
-      // 신규 추가
-      const result = await api.addRecipe(data);
-      const newRecipe = Array.isArray(result) ? result[0] : result;
-      recipes.unshift(newRecipe);
+      const result = await api.addItem(table, data);
+      const newItem = Array.isArray(result) ? result[0] : result;
+      items.unshift(newItem);
       showToast('✅ 저장되었어요');
     }
-    render();
-    closeModal();
-  } catch(e) {
-    showToast('⚠️ 저장 실패. 다시 시도해주세요.');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = editingId ? '수정 저장' : '저장하기';
-  }
+    render(); closeModal();
+  } catch(e) { showToast('⚠️ 저장 실패'); }
+  finally { btn.disabled = false; btn.textContent = editingId ? '수정 저장' : '저장하기'; }
+}
+
+// ── EMOJI ─────────────────────────────────────────────
+function buildEmojiPicker() {
+  const emojis = currentTab === 'recipe' ? RECIPE_EMOJIS : WORKOUT_EMOJIS;
+  const er = document.getElementById('emojiRow');
+  er.innerHTML = '';
+  emojis.forEach(e => {
+    const el = document.createElement('span');
+    el.className = 'emoji-opt' + (e === selectedEmoji ? ' selected' : '');
+    el.textContent = e;
+    el.onclick = () => {
+      document.querySelectorAll('.emoji-opt').forEach(x => x.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedEmoji = e;
+    };
+    er.appendChild(el);
+  });
 }
 
 // ── TAG INPUT ─────────────────────────────────────────
@@ -722,8 +660,56 @@ function renderPresets() {
   });
 }
 
+// ── THUMBNAIL ─────────────────────────────────────────
+function resetThumbPreview() {
+  const p = document.getElementById('thumbPreview');
+  p.style.display = 'none';
+  document.getElementById('thumbLoading').style.display = 'none';
+  document.getElementById('thumbEmpty').style.display = 'none';
+  document.getElementById('thumbImg').style.display = 'none';
+  document.getElementById('thumbRemove').style.display = 'none';
+}
+
+function showThumbImg(url) {
+  const p = document.getElementById('thumbPreview');
+  p.style.display = 'flex';
+  document.getElementById('thumbLoading').style.display = 'none';
+  document.getElementById('thumbEmpty').style.display = 'none';
+  const img = document.getElementById('thumbImg');
+  img.src = url; img.style.display = 'block';
+  document.getElementById('thumbRemove').style.display = 'flex';
+}
+
+function removeThumbnail() {
+  document.getElementById('f_thumbnail').value = '';
+  resetThumbPreview();
+}
+
+async function fetchThumbnail() {
+  const url = document.getElementById('f_url').value.trim();
+  if (!url || document.getElementById('f_thumbnail').value) return;
+  const p = document.getElementById('thumbPreview');
+  p.style.display = 'flex';
+  document.getElementById('thumbLoading').style.display = 'flex';
+  document.getElementById('thumbEmpty').style.display = 'none';
+  document.getElementById('thumbImg').style.display = 'none';
+  document.getElementById('thumbRemove').style.display = 'none';
+  try {
+    const res = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`);
+    const data = await res.json();
+    const imgUrl = data?.data?.image?.url || null;
+    if (imgUrl) { document.getElementById('f_thumbnail').value = imgUrl; showThumbImg(imgUrl); }
+    else { document.getElementById('thumbLoading').style.display = 'none'; document.getElementById('thumbEmpty').style.display = 'flex'; setTimeout(resetThumbPreview, 2000); }
+  } catch(e) {
+    document.getElementById('thumbLoading').style.display = 'none';
+    document.getElementById('thumbEmpty').style.display = 'flex';
+    setTimeout(resetThumbPreview, 2000);
+  }
+}
+
 // ── SETTINGS ──────────────────────────────────────────
 function openSettings() {
+  document.getElementById('settingsTagTitle').textContent = `태그 관리 — ${currentTab === 'recipe' ? 'Recipe' : 'Workout'}`;
   renderSettingsTagList();
   document.getElementById('newTagInput').value = '';
   document.getElementById('settingsOverlay').classList.add('open');
@@ -737,17 +723,14 @@ function handleSettingsOverlayClick(e) { if (e.target.id === 'settingsOverlay') 
 
 function renderSettingsTagList() {
   const list = document.getElementById('settingsTagList');
-  if (userTags.length === 0) {
-    list.innerHTML = `<div class="settings-empty">저장된 태그가 없어요</div>`;
-    return;
-  }
+  if (userTags.length === 0) { list.innerHTML = `<div class="settings-empty">저장된 태그가 없어요</div>`; return; }
   list.innerHTML = userTags.map(tag => {
-    const usageCount = recipes.filter(r => (r.tags || []).includes(tag.name)).length;
+    const usageCount = items.filter(r => (r.tags || []).includes(tag.name)).length;
     return `<div class="settings-tag-row" draggable="true" data-id="${tag.id}" data-name="${tag.name}">
       <div style="display:flex;align-items:center;gap:2px;">
         <span class="drag-handle">⠿</span>
         <span class="settings-tag-name">${tag.name}</span>
-        <span class="settings-tag-usage">(${usageCount}개 레시피)</span>
+        <span class="settings-tag-usage">(${usageCount}개)</span>
       </div>
       <button class="btn-tag-delete" onclick="deleteTag(${tag.id}, '${tag.name}')">삭제</button>
     </div>`;
@@ -759,55 +742,29 @@ function initDragAndDrop() {
   const list = document.getElementById('settingsTagList');
   const rows = list.querySelectorAll('.settings-tag-row');
   let dragSrc = null;
-
   rows.forEach(row => {
-    // 마우스 드래그
-    row.addEventListener('dragstart', e => {
-      dragSrc = row;
-      row.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move';
-    });
-    row.addEventListener('dragend', () => {
-      row.classList.remove('dragging');
-      list.querySelectorAll('.settings-tag-row').forEach(r => r.classList.remove('drag-over'));
-    });
-    row.addEventListener('dragover', e => {
-      e.preventDefault();
-      if (row !== dragSrc) {
-        list.querySelectorAll('.settings-tag-row').forEach(r => r.classList.remove('drag-over'));
-        row.classList.add('drag-over');
-      }
-    });
+    row.addEventListener('dragstart', e => { dragSrc = row; row.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+    row.addEventListener('dragend', () => { row.classList.remove('dragging'); list.querySelectorAll('.settings-tag-row').forEach(r => r.classList.remove('drag-over')); });
+    row.addEventListener('dragover', e => { e.preventDefault(); if (row !== dragSrc) { list.querySelectorAll('.settings-tag-row').forEach(r => r.classList.remove('drag-over')); row.classList.add('drag-over'); } });
     row.addEventListener('drop', e => {
       e.preventDefault();
       if (dragSrc && row !== dragSrc) {
         const allRows = [...list.querySelectorAll('.settings-tag-row')];
-        const srcIdx = allRows.indexOf(dragSrc);
-        const tgtIdx = allRows.indexOf(row);
+        const srcIdx = allRows.indexOf(dragSrc), tgtIdx = allRows.indexOf(row);
         if (srcIdx < tgtIdx) list.insertBefore(dragSrc, row.nextSibling);
         else list.insertBefore(dragSrc, row);
         saveTagOrder();
       }
       row.classList.remove('drag-over');
     });
-
-    // 터치 드래그 (모바일)
-    let touchStartY = 0;
     let touchRow = null;
-    row.addEventListener('touchstart', e => {
-      touchRow = row;
-      touchStartY = e.touches[0].clientY;
-      row.classList.add('dragging');
-    }, { passive: true });
+    row.addEventListener('touchstart', e => { touchRow = row; row.classList.add('dragging'); }, { passive: true });
     row.addEventListener('touchmove', e => {
       e.preventDefault();
       const y = e.touches[0].clientY;
       const allRows = [...list.querySelectorAll('.settings-tag-row')];
       allRows.forEach(r => r.classList.remove('drag-over'));
-      const target = allRows.find(r => {
-        const rect = r.getBoundingClientRect();
-        return y >= rect.top && y <= rect.bottom && r !== touchRow;
-      });
+      const target = allRows.find(r => { const rect = r.getBoundingClientRect(); return y >= rect.top && y <= rect.bottom && r !== touchRow; });
       if (target) target.classList.add('drag-over');
     }, { passive: false });
     row.addEventListener('touchend', e => {
@@ -815,13 +772,9 @@ function initDragAndDrop() {
       const y = e.changedTouches[0].clientY;
       const allRows = [...list.querySelectorAll('.settings-tag-row')];
       allRows.forEach(r => r.classList.remove('drag-over'));
-      const target = allRows.find(r => {
-        const rect = r.getBoundingClientRect();
-        return y >= rect.top && y <= rect.bottom && r !== touchRow;
-      });
+      const target = allRows.find(r => { const rect = r.getBoundingClientRect(); return y >= rect.top && y <= rect.bottom && r !== touchRow; });
       if (target) {
-        const srcIdx = allRows.indexOf(touchRow);
-        const tgtIdx = allRows.indexOf(target);
+        const srcIdx = allRows.indexOf(touchRow), tgtIdx = allRows.indexOf(target);
         if (srcIdx < tgtIdx) list.insertBefore(touchRow, target.nextSibling);
         else list.insertBefore(touchRow, target);
         saveTagOrder();
@@ -834,18 +787,12 @@ async function saveTagOrder() {
   const list = document.getElementById('settingsTagList');
   const rows = [...list.querySelectorAll('.settings-tag-row')];
   const newOrder = rows.map((row, i) => ({ id: parseInt(row.dataset.id), sort_order: i }));
-
-  // userTags 순서 업데이트
   userTags = newOrder.map(o => userTags.find(t => t.id === o.id)).filter(Boolean);
-
-  // DB 업데이트
   try {
     await Promise.all(newOrder.map(o => api.updateTagOrder(o.id, o.sort_order)));
     buildTagFilter();
-    showToast('✅ 태그 순서가 저장되었어요');
-  } catch(e) {
-    showToast('⚠️ 순서 저장 실패');
-  }
+    showToast('✅ 순서 저장됨');
+  } catch(e) { showToast('⚠️ 순서 저장 실패'); }
 }
 
 async function addNewTag() {
@@ -854,51 +801,41 @@ async function addNewTag() {
   if (!val) return;
   if (userTags.find(t => t.name === val)) { alert('이미 있는 태그예요'); return; }
   try {
-    const result = await api.addTag(val);
+    const result = await api.addTag(val, currentTab);
     const newTag = Array.isArray(result) ? result[0] : result;
     userTags.push(newTag);
     input.value = '';
     renderSettingsTagList();
     buildTagFilter();
     renderPresets();
-    showToast('✅ 태그가 추가되었어요');
+    showToast('✅ 태그 추가됨');
   } catch(e) { showToast('⚠️ 태그 추가 실패'); }
 }
 
 async function deleteTag(id, name) {
-  const usageCount = recipes.filter(r => (r.tags || []).includes(name)).length;
-  const msg = usageCount > 0
-    ? `"${name}" 태그를 삭제할까요?\n(${usageCount}개 레시피에서도 제거됩니다)`
-    : `"${name}" 태그를 삭제할까요?`;
+  const usageCount = items.filter(r => (r.tags || []).includes(name)).length;
+  const msg = usageCount > 0 ? `"${name}" 태그를 삭제할까요?\n(${usageCount}개 항목에서도 제거됩니다)` : `"${name}" 태그를 삭제할까요?`;
   if (!confirm(msg)) return;
-
+  const table = currentTab === 'recipe' ? 'recipes' : 'workouts';
   try {
     await api.deleteTag(id);
-
-    // 레시피에서도 해당 태그 제거 (DB 업데이트)
-    const affected = recipes.filter(r => (r.tags || []).includes(name));
-    await Promise.all(affected.map(r =>
-      api.updateRecipe(r.id, { tags: r.tags.filter(t => t !== name) })
-    ));
-
-    recipes = recipes.map(r => ({ ...r, tags: (r.tags || []).filter(t => t !== name) }));
+    const affected = items.filter(r => (r.tags || []).includes(name));
+    await Promise.all(affected.map(r => api.updateItem(table, r.id, { tags: r.tags.filter(t => t !== name) })));
+    items = items.map(r => ({ ...r, tags: (r.tags || []).filter(t => t !== name) }));
     userTags = userTags.filter(t => t.id !== id);
     if (activeTag === name) activeTag = 'all';
-
-    renderSettingsTagList();
-    buildTagFilter();
-    render();
-    showToast('🗑️ 태그가 삭제되었어요');
+    renderSettingsTagList(); buildTagFilter(); render();
+    showToast('🗑️ 태그 삭제됨');
   } catch(e) { showToast('⚠️ 태그 삭제 실패'); }
 }
 
 // ── BACKUP / RESTORE ──────────────────────────────────
 function exportData() {
-  const data = { recipes, tags: userTags, exportedAt: new Date().toISOString() };
+  const data = { items, tags: userTags, tab: currentTab, exportedAt: new Date().toISOString() };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `recipe-book-backup-${new Date().toLocaleDateString('ko')}.json`;
+  a.download = `lisa-${currentTab}-backup-${new Date().toLocaleDateString('ko')}.json`;
   a.click();
 }
 
@@ -909,80 +846,21 @@ async function importData(e) {
   reader.onload = async (ev) => {
     try {
       const data = JSON.parse(ev.target.result);
-      if (!data.recipes) { alert('올바른 백업 파일이 아니에요'); return; }
-      if (!confirm(`${data.recipes.length}개의 레시피를 불러올까요?\n현재 데이터에 추가됩니다.`)) return;
-
-      for (const r of data.recipes) {
-        const { id, created_at, ...recipeData } = r;
-        await api.addRecipe(recipeData);
+      if (!data.items && !data.recipes) { alert('올바른 백업 파일이 아니에요'); return; }
+      const sourceItems = data.items || data.recipes;
+      if (!confirm(`${sourceItems.length}개를 불러올까요?\n현재 데이터에 추가됩니다.`)) return;
+      const table = currentTab === 'recipe' ? 'recipes' : 'workouts';
+      for (const r of sourceItems) {
+        const { id, created_at, ...itemData } = r;
+        await api.addItem(table, itemData);
       }
-      recipes = await api.getRecipes();
-      render();
-      closeSettings();
-      showToast(`✅ ${data.recipes.length}개 레시피 복원 완료`);
+      items = await api.getItems(table);
+      render(); closeSettings();
+      showToast(`✅ ${sourceItems.length}개 복원 완료`);
     } catch { showToast('⚠️ 파일을 읽을 수 없어요'); }
   };
   reader.readAsText(file);
   e.target.value = '';
-}
-
-
-// ── THUMBNAIL ─────────────────────────────────────────
-function resetThumbPreview() {
-  document.getElementById('thumbPreview').style.display = 'none';
-  document.getElementById('thumbLoading').style.display = 'none';
-  document.getElementById('thumbEmpty').style.display = 'none';
-  document.getElementById('thumbImg').style.display = 'none';
-  document.getElementById('thumbRemove').style.display = 'none';
-}
-
-function showThumbImg(url) {
-  const preview = document.getElementById('thumbPreview');
-  preview.style.display = 'flex';
-  document.getElementById('thumbLoading').style.display = 'none';
-  document.getElementById('thumbEmpty').style.display = 'none';
-  const img = document.getElementById('thumbImg');
-  img.src = url;
-  img.style.display = 'block';
-  document.getElementById('thumbRemove').style.display = 'flex';
-}
-
-function removeThumbnail() {
-  document.getElementById('f_thumbnail').value = '';
-  resetThumbPreview();
-}
-
-async function fetchThumbnail() {
-  const url = document.getElementById('f_url').value.trim();
-  if (!url || document.getElementById('f_thumbnail').value) return;
-
-  const preview = document.getElementById('thumbPreview');
-  preview.style.display = 'flex';
-  document.getElementById('thumbLoading').style.display = 'flex';
-  document.getElementById('thumbEmpty').style.display = 'none';
-  document.getElementById('thumbImg').style.display = 'none';
-  document.getElementById('thumbRemove').style.display = 'none';
-
-  try {
-    const apiUrl = `https://api.microlink.io?url=${encodeURIComponent(url)}&screenshot=false`;
-    const res = await fetch(apiUrl);
-    const data = await res.json();
-
-    const imgUrl = data?.data?.image?.url || data?.data?.og?.image || null;
-
-    if (imgUrl) {
-      document.getElementById('f_thumbnail').value = imgUrl;
-      showThumbImg(imgUrl);
-    } else {
-      document.getElementById('thumbLoading').style.display = 'none';
-      document.getElementById('thumbEmpty').style.display = 'flex';
-      setTimeout(resetThumbPreview, 2000);
-    }
-  } catch(e) {
-    document.getElementById('thumbLoading').style.display = 'none';
-    document.getElementById('thumbEmpty').style.display = 'flex';
-    setTimeout(resetThumbPreview, 2000);
-  }
 }
 
 init();
