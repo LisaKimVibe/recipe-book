@@ -52,6 +52,34 @@
   .divider-bold { height: 1px; background: var(--black); margin-bottom: 20px; }
   .divider-thin { height: 1px; background: var(--border); margin: 20px 0 4px; }
 
+  /* GRID */
+  .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+  .card.grid-item { display: flex; flex-direction: column; cursor: pointer; }
+  .card-thumb-grid {
+    width: 100%; aspect-ratio: 1/1;
+    background: linear-gradient(145deg, #EDE8E0 0%, #DDD5C8 100%);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    position: relative; flex-shrink: 0;
+  }
+  .card-body-grid { padding: 8px 10px 10px; flex: 1; }
+  .card-title-grid {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.82rem; font-weight: 700;
+    color: var(--black); line-height: 1.3;
+    overflow: hidden; text-overflow: ellipsis;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    margin-bottom: 4px;
+  }
+  .card-tags-grid { display: flex; flex-wrap: wrap; gap: 3px; }
+  .card-tag-grid {
+    display: inline-flex; align-items: center;
+    background: transparent; border: 1px solid var(--border);
+    color: var(--muted); border-radius: 2px;
+    padding: 1px 5px; font-size: 0.58rem;
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+
   /* CARD */
   .card { background: var(--white); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); position: relative; transition: transform 0.18s ease, box-shadow 0.18s ease; }
   .card:active { transform: scale(0.985); box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
@@ -298,6 +326,13 @@ const api = {
     return res.json();
   },
 
+  async updateLastViewed(id) {
+    await fetch(`${SUPABASE_URL}/rest/v1/recipes?id=eq.${id}`, {
+      method: 'PATCH', headers: this.headers,
+      body: JSON.stringify({ last_viewed_at: new Date().toISOString() })
+    });
+  },
+
   async getTags() {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/tags?order=sort_order.asc,id.asc`, { headers: this.headers });
     return res.json();
@@ -438,15 +473,20 @@ function render() {
     return;
   }
 
-  const featured = filtered[0];
-  const rest = filtered.slice(1);
+  // 최근 본 레시피 찾기 (last_viewed_at 기준)
+  const viewed = filtered.filter(r => r.last_viewed_at).sort((a, b) =>
+    new Date(b.last_viewed_at) - new Date(a.last_viewed_at)
+  );
+  const featured = viewed.length > 0 ? viewed[0] : filtered[0];
+  const rest = filtered.filter(r => r.id !== featured.id);
+
   let html = `<div class="count-bar"><span class="count-num">${filtered.length}</span><span class="count-label">Recipes</span></div><div class="divider-bold"></div>${cardFeatured(featured)}`;
+
   if (rest.length > 0) {
     html += `<div class="divider-thin"></div>`;
-    rest.forEach((r, i) => {
-      html += cardList(r);
-      if (i < rest.length - 1) html += `<div style="height:1px;background:var(--border)"></div>`;
-    });
+    html += `<div class="grid-container">`;
+    rest.forEach(r => { html += cardGrid(r); });
+    html += `</div>`;
   }
   main.innerHTML = html;
 }
@@ -454,7 +494,7 @@ function render() {
 function getDomain(url) { try { return new URL(url).hostname.replace('www.', ''); } catch { return ''; } }
 
 function cardFeatured(r) {
-  return `<div class="card featured" onclick="${r.url ? `window.open('${r.url}','_blank')` : ''}">
+  return `<div class="card featured" onclick="viewRecipe(${r.id})">
     <div class="card-thumb-featured">
       ${r.thumbnail
         ? `<img src="${r.thumbnail}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;" alt="" onerror="this.style.display='none'">`
@@ -477,7 +517,7 @@ function cardFeatured(r) {
 }
 
 function cardList(r) {
-  return `<div class="card list-item" onclick="${r.url ? `window.open('${r.url}','_blank')` : ''}">
+  return `<div class="card list-item" onclick="viewRecipe(${r.id})">
     <div class="card-thumb-list">
       ${r.thumbnail
         ? `<img src="${r.thumbnail}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;" alt="" onerror="this.style.display='none'">`
@@ -498,6 +538,25 @@ function cardList(r) {
 }
 
 // ── DELETE ────────────────────────────────────────────
+function cardGrid(r) {
+  return `<div class="card grid-item" onclick="viewRecipe(${r.id})">
+    <div class="card-thumb-grid">
+      ${r.thumbnail
+        ? `<img src="${r.thumbnail}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;" alt="" onerror="this.style.display='none'">`
+        : `<span style="font-size:2.2rem;">${r.emoji || '🍳'}</span>`}
+      ${r.url ? `<a class="btn-play" href="${r.url}" target="_blank" onclick="event.stopPropagation()" style="bottom:6px;right:6px;width:26px;height:26px;font-size:0.55rem;">▶</a>` : ''}
+    </div>
+    <div class="card-body-grid">
+      ${r.tags?.length ? `<div class="card-tags-grid">${r.tags.slice(0,2).map(t=>`<span class="card-tag-grid">${t}</span>`).join('')}</div>` : ''}
+      <div class="card-title-grid">${r.title}</div>
+    </div>
+    <div class="card-actions">
+      <button class="card-action-btn edit" onclick="event.stopPropagation();openEditModal(${r.id})" title="수정">✏️</button>
+      <button class="card-action-btn delete" onclick="event.stopPropagation();deleteRecipe(${r.id})" title="삭제">✕</button>
+    </div>
+  </div>`;
+}
+
 async function deleteRecipe(id) {
   if (!confirm('삭제할까요?')) return;
   try {
