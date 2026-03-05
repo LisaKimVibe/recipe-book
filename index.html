@@ -17,6 +17,7 @@
     --border: #DDD8D0;
     --white: #FFFFFF;
     --danger: #C0392B;
+    --success: #27AE60;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body { background: var(--ivory); font-family: 'DM Sans', sans-serif; color: var(--black); min-height: 100vh; }
@@ -30,28 +31,17 @@
   .logo-sub { font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 1px; }
   .logo-main { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
   .header-actions { display: flex; align-items: center; gap: 4px; }
-  .btn-icon {
-    background: none; border: none; cursor: pointer;
-    width: 36px; height: 36px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1rem; color: var(--charcoal); transition: background 0.15s;
-  }
+  .btn-icon { background: none; border: none; cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--charcoal); transition: background 0.15s; }
   .btn-icon.active { background: var(--surface); }
 
-  /* SEARCH BAR */
+  /* SEARCH */
   #searchBar { display: none; padding-bottom: 12px; animation: fadeIn 0.15s ease; }
   #searchBar.open { display: block; }
   #searchBar input { width: 100%; background: var(--surface); border: none; border-radius: 6px; padding: 10px 16px; font-size: 0.9rem; color: var(--black); outline: none; }
 
   /* TAG FILTER */
   .tag-filter { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 12px; scrollbar-width: none; }
-  .tag-filter-btn {
-    background: transparent; color: var(--muted);
-    border: 1px solid var(--border); border-radius: 2px;
-    padding: 5px 12px; font-size: 0.65rem; cursor: pointer;
-    letter-spacing: 0.1em; text-transform: uppercase;
-    font-weight: 500; white-space: nowrap; transition: all 0.15s; flex-shrink: 0;
-  }
+  .tag-filter-btn { background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 2px; padding: 5px 12px; font-size: 0.65rem; cursor: pointer; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500; white-space: nowrap; transition: all 0.15s; flex-shrink: 0; }
   .tag-filter-btn.active { background: var(--black); color: var(--ivory); border-color: var(--black); }
 
   /* MAIN */
@@ -82,8 +72,14 @@
   .card-title-sm { font-family: 'Playfair Display', serif; font-size: 0.95rem; font-weight: 700; color: var(--black); line-height: 1.3; margin-bottom: 6px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   .card-ingredients { font-size: 0.75rem; color: var(--muted); line-height: 1.5; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .card-memo { font-size: 0.75rem; color: var(--muted); line-height: 1.6; font-style: italic; margin-top: 6px; }
-  .btn-delete { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.9); border: 1px solid var(--border); border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.65rem; color: var(--muted); opacity: 0; transition: opacity 0.15s; }
-  .card:hover .btn-delete { opacity: 1; }
+
+  /* CARD ACTION BUTTONS */
+  .card-actions { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s; }
+  .card:hover .card-actions { opacity: 1; }
+  .card-action-btn { background: rgba(255,255,255,0.9); border: 1px solid var(--border); border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.65rem; color: var(--muted); }
+  .card-action-btn:hover { background: var(--white); }
+  .card-action-btn.edit:hover { color: var(--charcoal); }
+  .card-action-btn.delete:hover { color: var(--danger); }
 
   /* EMPTY */
   .empty { text-align: center; padding: 80px 20px; }
@@ -91,11 +87,20 @@
   .empty-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--charcoal); margin-bottom: 8px; }
   .empty-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.7; }
 
+  /* LOADING */
+  .loading { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 0.85rem; letter-spacing: 0.08em; }
+  .loading-spinner { width: 28px; height: 28px; border: 2px solid var(--border); border-top-color: var(--black); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 16px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--black); color: var(--ivory); padding: 10px 20px; border-radius: 50px; font-size: 0.8rem; letter-spacing: 0.05em; opacity: 0; transition: all 0.25s; z-index: 500; white-space: nowrap; pointer-events: none; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
   /* FAB */
   .fab { position: fixed; bottom: 28px; right: 24px; background: var(--black); color: var(--ivory); border: none; border-radius: 50%; width: 52px; height: 52px; font-size: 1.3rem; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; z-index: 50; transition: transform 0.15s; }
   .fab:active { transform: scale(0.93); }
 
-  /* ── MODAL BASE ── */
+  /* MODAL BASE */
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(17,17,16,0.6); z-index: 300; align-items: flex-end; justify-content: center; backdrop-filter: blur(4px); }
   .modal-overlay.open { display: flex; }
   .modal { background: var(--ivory); width: 100%; max-width: 480px; border-radius: 16px 16px 0 0; max-height: 92vh; overflow-y: auto; animation: slideUp 0.3s cubic-bezier(0.32,0.72,0,1); padding-bottom: env(safe-area-inset-bottom); }
@@ -111,11 +116,11 @@
   .field input, .field textarea { width: 100%; border: none; border-bottom: 1px solid var(--border); padding: 10px 0; font-size: 0.9rem; font-family: 'DM Sans', sans-serif; color: var(--black); background: transparent; outline: none; }
   .field textarea { resize: none; line-height: 1.6; }
 
-  /* TAG INPUT in recipe modal */
+  /* TAG INPUT */
   .tag-input-wrap { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; cursor: text; min-height: 38px; }
   .tag-chip { display: inline-flex; align-items: center; gap: 4px; background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 2px; padding: 2px 7px; font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; }
   .tag-chip-remove { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 0.65rem; padding: 0; line-height: 1; }
-  #tagRealInput { border: none; outline: none; background: transparent; font-size: 0.82rem; flex: 1; min-width: 80px; font-family: 'DM Sans', sans-serif; color: var(--charcoal); padding: 0; }
+  .tag-real-input { border: none; outline: none; background: transparent; font-size: 0.82rem; flex: 1; min-width: 80px; font-family: 'DM Sans', sans-serif; color: var(--charcoal); padding: 0; }
   .tag-presets { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
   .tag-preset-btn { font-size: 0.7rem; color: var(--muted); border: 1px dashed var(--border); border-radius: 2px; padding: 2px 8px; cursor: pointer; background: none; letter-spacing: 0.06em; font-family: 'DM Sans', sans-serif; }
 
@@ -125,52 +130,19 @@
   .emoji-opt.selected { background: var(--surface); border-color: #9E7D52; }
 
   .btn-save { width: 100%; background: var(--black); color: var(--ivory); border: none; border-radius: 4px; padding: 15px; font-size: 0.82rem; font-weight: 600; cursor: pointer; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 4px; }
-  .btn-save:active { opacity: 0.85; }
+  .btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  /* ── SETTINGS MODAL ── */
-  .settings-section-title {
-    font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase;
-    color: var(--muted); font-weight: 600; margin-bottom: 14px;
-  }
-
-  /* Tag list in settings */
+  /* SETTINGS */
+  .settings-section-title { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 14px; }
   .settings-tag-list { display: flex; flex-direction: column; gap: 2px; }
-  .settings-tag-row {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 11px 14px; background: var(--white);
-    border: 1px solid var(--border); border-radius: 4px;
-    transition: background 0.12s;
-  }
-  .settings-tag-row:hover { background: var(--surface); }
-  .settings-tag-name { font-size: 0.85rem; color: var(--charcoal); letter-spacing: 0.04em; }
+  .settings-tag-row { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; background: var(--white); border: 1px solid var(--border); border-radius: 4px; }
+  .settings-tag-name { font-size: 0.85rem; color: var(--charcoal); }
   .settings-tag-usage { font-size: 0.72rem; color: var(--muted); margin-left: 8px; }
-  .btn-tag-delete {
-    background: none; border: none; cursor: pointer;
-    color: var(--muted); font-size: 0.75rem; padding: 4px 8px;
-    border-radius: 3px; transition: all 0.12s;
-    letter-spacing: 0.05em;
-  }
+  .btn-tag-delete { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 0.75rem; padding: 4px 8px; border-radius: 3px; transition: all 0.12s; }
   .btn-tag-delete:hover { background: #fde8e8; color: var(--danger); }
-
-  /* Add tag row */
-  .add-tag-row {
-    display: flex; gap: 8px; align-items: center; margin-top: 14px;
-  }
-  .add-tag-input {
-    flex: 1; border: none; border-bottom: 1px solid var(--border);
-    padding: 9px 0; font-size: 0.88rem; background: transparent;
-    outline: none; color: var(--black); font-family: 'DM Sans', sans-serif;
-  }
-  .btn-tag-add {
-    background: var(--black); color: var(--ivory);
-    border: none; border-radius: 4px;
-    padding: 9px 16px; font-size: 0.72rem;
-    font-weight: 600; cursor: pointer;
-    letter-spacing: 0.1em; text-transform: uppercase;
-    white-space: nowrap; flex-shrink: 0;
-  }
-  .btn-tag-add:active { opacity: 0.8; }
-
+  .add-tag-row { display: flex; gap: 8px; align-items: center; margin-top: 14px; }
+  .add-tag-input { flex: 1; border: none; border-bottom: 1px solid var(--border); padding: 9px 0; font-size: 0.88rem; background: transparent; outline: none; color: var(--black); font-family: 'DM Sans', sans-serif; }
+  .btn-tag-add { background: var(--black); color: var(--ivory); border: none; border-radius: 4px; padding: 9px 16px; font-size: 0.72rem; font-weight: 600; cursor: pointer; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; }
   .settings-divider { height: 1px; background: var(--border); margin: 28px 0; }
   .settings-empty { text-align: center; padding: 24px 0; color: var(--muted); font-size: 0.82rem; }
 
@@ -198,25 +170,26 @@
 </header>
 
 <main id="main"></main>
-
 <button class="fab" onclick="openModal()">+</button>
+<div class="toast" id="toast"></div>
 
-<!-- ── 레시피 추가 MODAL ── -->
+<!-- 레시피 추가/수정 MODAL -->
 <div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
   <div class="modal">
     <div class="modal-handle-row"><div class="modal-handle"></div></div>
     <div class="modal-header">
-      <div class="modal-title">새 레시피</div>
+      <div class="modal-title" id="modalTitle">새 레시피</div>
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body">
+      <input type="hidden" id="f_id">
       <div class="field"><label>URL</label><input type="url" id="f_url" placeholder="facebook.com/reel/..."></div>
       <div class="field"><label>요리 이름</label><input type="text" id="f_title" placeholder="예: 간장계란볶음밥"></div>
       <div class="field"><label>주요 재료</label><input type="text" id="f_ingredients" placeholder="예: 계란, 밥, 간장, 파"></div>
       <div class="field">
         <label>태그</label>
         <div class="tag-input-wrap" id="tagWrap" onclick="document.getElementById('tagRealInput').focus()">
-          <input id="tagRealInput" placeholder="입력 후 Enter" onkeydown="handleTagKey(event)">
+          <input class="tag-real-input" id="tagRealInput" placeholder="입력 후 Enter" onkeydown="handleTagKey(event)">
         </div>
         <div class="tag-presets" id="tagPresets"></div>
       </div>
@@ -225,12 +198,12 @@
         <div class="emoji-row" id="emojiRow"></div>
       </div>
       <div class="field"><label>메모</label><textarea id="f_memo" rows="2" placeholder="양념 비율, 팁..."></textarea></div>
-      <button class="btn-save" onclick="saveRecipe()">저장하기</button>
+      <button class="btn-save" id="btnSave" onclick="saveRecipe()">저장하기</button>
     </div>
   </div>
 </div>
 
-<!-- ── 설정 MODAL ── -->
+<!-- 설정 MODAL -->
 <div class="modal-overlay" id="settingsOverlay" onclick="handleSettingsOverlayClick(event)">
   <div class="modal">
     <div class="modal-handle-row"><div class="modal-handle"></div></div>
@@ -239,58 +212,110 @@
       <button class="modal-close" onclick="closeSettings()">✕</button>
     </div>
     <div class="modal-body">
-
-      <!-- 태그 관리 섹션 -->
       <div>
         <div class="settings-section-title">태그 관리</div>
         <div class="settings-tag-list" id="settingsTagList"></div>
-
-        <!-- 태그 추가 -->
         <div class="add-tag-row">
           <input class="add-tag-input" id="newTagInput" placeholder="새 태그 이름 입력" onkeydown="if(event.key==='Enter') addNewTag()">
           <button class="btn-tag-add" onclick="addNewTag()">+ 추가</button>
         </div>
       </div>
-
       <div class="settings-divider"></div>
-
-      <!-- 향후 설정 항목 추가 영역 -->
       <div>
         <div class="settings-section-title">데이터</div>
-        <div style="display:flex; flex-direction:column; gap:10px;">
-          <button onclick="exportData()" style="width:100%;background:transparent;border:1px solid var(--border);border-radius:4px;padding:12px;font-size:0.8rem;color:var(--charcoal);cursor:pointer;letter-spacing:0.08em;text-align:left;">
-            📥 &nbsp; 데이터 백업 (JSON 다운로드)
-          </button>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <button onclick="exportData()" style="width:100%;background:transparent;border:1px solid var(--border);border-radius:4px;padding:12px;font-size:0.8rem;color:var(--charcoal);cursor:pointer;letter-spacing:0.08em;text-align:left;">📥 &nbsp;데이터 백업 (JSON 다운로드)</button>
           <label style="width:100%;background:transparent;border:1px solid var(--border);border-radius:4px;padding:12px;font-size:0.8rem;color:var(--charcoal);cursor:pointer;letter-spacing:0.08em;display:block;">
-            📤 &nbsp; 데이터 복원 (JSON 불러오기)
+            📤 &nbsp;데이터 복원 (JSON 불러오기)
             <input type="file" accept=".json" onchange="importData(event)" style="display:none">
           </label>
         </div>
       </div>
-
     </div>
   </div>
 </div>
 
 <script>
-const EMOJIS = ['🍳','🥘','🍜','🍲','🥗','🍱','🍚','🥩','🍗','🥦','🍝','🍛','🥟','🍤','🎂'];
-const DEFAULT_TAGS = ['간단','국물','볶음','간식','15분','다이어트','손님상'];
+// ── SUPABASE 설정 ─────────────────────────────────────
+const SUPABASE_URL = 'https://wyfstijjrfdajbsbmban.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5ZnN0aWpqcmZkYWpic2JtYmFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2NjM5NzQsImV4cCI6MjA4ODIzOTk3NH0.Mvl5wRpdZM20ox2chwLNK5KURROtROFVUu_TJPcDkNI';
 
-let recipes = JSON.parse(localStorage.getItem('rr_recipes') || '[]');
-let userTags = JSON.parse(localStorage.getItem('rr_tags') || JSON.stringify(DEFAULT_TAGS));
+const api = {
+  headers: {
+    'Content-Type': 'application/json',
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'Prefer': 'return=representation',
+  },
+
+  async getRecipes() {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/recipes?order=created_at.desc`, { headers: this.headers });
+    return res.json();
+  },
+
+  async getTags() {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/tags?order=name.asc`, { headers: this.headers });
+    return res.json();
+  },
+
+  async addRecipe(data) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/recipes`, {
+      method: 'POST', headers: this.headers, body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+
+  async updateRecipe(id, data) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/recipes?id=eq.${id}`, {
+      method: 'PATCH', headers: this.headers, body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+
+  async deleteRecipe(id) {
+    await fetch(`${SUPABASE_URL}/rest/v1/recipes?id=eq.${id}`, {
+      method: 'DELETE', headers: this.headers
+    });
+  },
+
+  async addTag(name) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/tags`, {
+      method: 'POST', headers: this.headers, body: JSON.stringify({ name })
+    });
+    return res.json();
+  },
+
+  async deleteTag(id) {
+    await fetch(`${SUPABASE_URL}/rest/v1/tags?id=eq.${id}`, {
+      method: 'DELETE', headers: this.headers
+    });
+  },
+};
+
+// ── STATE ─────────────────────────────────────────────
+const EMOJIS = ['🍳','🥘','🍜','🍲','🥗','🍱','🍚','🥩','🍗','🥦','🍝','🍛','🥟','🍤','🎂'];
+let recipes = [];
+let userTags = [];
 let activeTag = 'all';
 let currentTags = [];
 let selectedEmoji = '🍳';
-
-// ── PERSIST ───────────────────────────────────────────
-function save() { localStorage.setItem('rr_recipes', JSON.stringify(recipes)); }
-function saveTags() { localStorage.setItem('rr_tags', JSON.stringify(userTags)); }
+let editingId = null;
 
 // ── INIT ──────────────────────────────────────────────
-function init() {
+async function init() {
+  showLoading();
   buildEmojiPicker();
+  try {
+    [recipes, userTags] = await Promise.all([api.getRecipes(), api.getTags()]);
+  } catch(e) {
+    showToast('⚠️ 데이터 로딩 실패. 네트워크를 확인해주세요.');
+  }
   buildTagFilter();
   render();
+}
+
+function showLoading() {
+  document.getElementById('main').innerHTML = `<div class="loading"><div class="loading-spinner"></div>불러오는 중...</div>`;
 }
 
 function buildEmojiPicker() {
@@ -312,7 +337,7 @@ function buildEmojiPicker() {
 function buildTagFilter() {
   const tf = document.getElementById('tagFilter');
   tf.innerHTML = '';
-  ['all', ...userTags].forEach(tag => {
+  ['all', ...userTags.map(t => t.name)].forEach(tag => {
     const btn = document.createElement('button');
     btn.className = 'tag-filter-btn' + (tag === activeTag ? ' active' : '');
     btn.textContent = tag === 'all' ? 'All' : tag;
@@ -325,6 +350,14 @@ function buildTagFilter() {
     };
     tf.appendChild(btn);
   });
+}
+
+// ── TOAST ─────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
 }
 
 // ── SEARCH ────────────────────────────────────────────
@@ -383,7 +416,10 @@ function cardFeatured(r) {
       ${r.ingredients ? `<div class="card-ingredients">${r.ingredients}</div>` : ''}
       ${r.memo ? `<div class="card-memo">"${r.memo}"</div>` : ''}
     </div>
-    <button class="btn-delete" onclick="event.stopPropagation();deleteRecipe(${r.id})">✕</button>
+    <div class="card-actions">
+      <button class="card-action-btn edit" onclick="event.stopPropagation();openEditModal(${r.id})" title="수정">✏️</button>
+      <button class="card-action-btn delete" onclick="event.stopPropagation();deleteRecipe(${r.id})" title="삭제">✕</button>
+    </div>
   </div>`;
 }
 
@@ -399,18 +435,30 @@ function cardList(r) {
       <div class="card-title-sm">${r.title}</div>
       ${r.ingredients ? `<div class="card-ingredients">${r.ingredients}</div>` : ''}
     </div>
-    <button class="btn-delete" onclick="event.stopPropagation();deleteRecipe(${r.id})">✕</button>
+    <div class="card-actions">
+      <button class="card-action-btn edit" onclick="event.stopPropagation();openEditModal(${r.id})" title="수정">✏️</button>
+      <button class="card-action-btn delete" onclick="event.stopPropagation();deleteRecipe(${r.id})" title="삭제">✕</button>
+    </div>
   </div>`;
 }
 
-function deleteRecipe(id) {
+// ── DELETE ────────────────────────────────────────────
+async function deleteRecipe(id) {
   if (!confirm('삭제할까요?')) return;
-  recipes = recipes.filter(r => r.id !== id);
-  save(); render();
+  try {
+    await api.deleteRecipe(id);
+    recipes = recipes.filter(r => r.id !== id);
+    render();
+    showToast('🗑️ 삭제되었어요');
+  } catch(e) { showToast('⚠️ 삭제 실패'); }
 }
 
-// ── RECIPE MODAL ──────────────────────────────────────
+// ── RECIPE MODAL (추가/수정 공용) ─────────────────────
 function openModal() {
+  editingId = null;
+  document.getElementById('modalTitle').textContent = '새 레시피';
+  document.getElementById('btnSave').textContent = '저장하기';
+  document.getElementById('f_id').value = '';
   document.getElementById('f_url').value = '';
   document.getElementById('f_title').value = '';
   document.getElementById('f_ingredients').value = '';
@@ -423,9 +471,79 @@ function openModal() {
   document.getElementById('modalOverlay').classList.add('open');
   setTimeout(() => document.getElementById('f_title').focus(), 200);
 }
+
+function openEditModal(id) {
+  const r = recipes.find(r => r.id === id);
+  if (!r) return;
+
+  editingId = id;
+  document.getElementById('modalTitle').textContent = '레시피 수정';
+  document.getElementById('btnSave').textContent = '수정 저장';
+  document.getElementById('f_id').value = r.id;
+  document.getElementById('f_url').value = r.url || '';
+  document.getElementById('f_title').value = r.title || '';
+  document.getElementById('f_ingredients').value = r.ingredients || '';
+  document.getElementById('f_memo').value = r.memo || '';
+
+  // 태그 설정
+  currentTags = [...(r.tags || [])];
+  renderTagChips();
+  renderPresets();
+
+  // 이모지 설정
+  selectedEmoji = r.emoji || '🍳';
+  document.querySelectorAll('.emoji-opt').forEach(el => {
+    el.classList.toggle('selected', el.textContent === selectedEmoji);
+  });
+
+  document.getElementById('modalOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('f_title').focus(), 200);
+}
+
 function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
 function handleOverlayClick(e) { if (e.target.id === 'modalOverlay') closeModal(); }
 
+async function saveRecipe() {
+  const title = document.getElementById('f_title').value.trim();
+  if (!title) { alert('요리 이름을 입력해주세요'); return; }
+
+  const btn = document.getElementById('btnSave');
+  btn.disabled = true;
+  btn.textContent = '저장 중...';
+
+  const data = {
+    title,
+    url: document.getElementById('f_url').value.trim(),
+    ingredients: document.getElementById('f_ingredients').value.trim(),
+    tags: [...currentTags],
+    emoji: selectedEmoji,
+    memo: document.getElementById('f_memo').value.trim(),
+  };
+
+  try {
+    if (editingId) {
+      // 수정
+      const updated = await api.updateRecipe(editingId, data);
+      recipes = recipes.map(r => r.id === editingId ? { ...r, ...data } : r);
+      showToast('✅ 수정되었어요');
+    } else {
+      // 신규 추가
+      const result = await api.addRecipe(data);
+      const newRecipe = Array.isArray(result) ? result[0] : result;
+      recipes.unshift(newRecipe);
+      showToast('✅ 저장되었어요');
+    }
+    render();
+    closeModal();
+  } catch(e) {
+    showToast('⚠️ 저장 실패. 다시 시도해주세요.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = editingId ? '수정 저장' : '저장하기';
+  }
+}
+
+// ── TAG INPUT ─────────────────────────────────────────
 function handleTagKey(e) {
   const input = document.getElementById('tagRealInput');
   if ((e.key === 'Enter' || e.key === ',') && input.value.trim()) {
@@ -461,32 +579,16 @@ function renderPresets() {
   const container = document.getElementById('tagPresets');
   if (!container) return;
   container.innerHTML = '';
-  userTags.filter(t => !currentTags.includes(t)).forEach(t => {
+  userTags.filter(t => !currentTags.includes(t.name)).forEach(t => {
     const btn = document.createElement('button');
     btn.className = 'tag-preset-btn';
-    btn.textContent = `+ ${t}`;
-    btn.onclick = () => addPresetTag(t);
+    btn.textContent = `+ ${t.name}`;
+    btn.onclick = () => addPresetTag(t.name);
     container.appendChild(btn);
   });
 }
 
-function saveRecipe() {
-  const title = document.getElementById('f_title').value.trim();
-  if (!title) { alert('요리 이름을 입력해주세요'); return; }
-  const r = {
-    id: Date.now(),
-    url: document.getElementById('f_url').value.trim(),
-    title,
-    ingredients: document.getElementById('f_ingredients').value.trim(),
-    tags: [...currentTags],
-    emoji: selectedEmoji,
-    memo: document.getElementById('f_memo').value.trim(),
-  };
-  recipes.unshift(r);
-  save(); render(); closeModal();
-}
-
-// ── SETTINGS MODAL ────────────────────────────────────
+// ── SETTINGS ──────────────────────────────────────────
 function openSettings() {
   renderSettingsTagList();
   document.getElementById('newTagInput').value = '';
@@ -505,54 +607,63 @@ function renderSettingsTagList() {
     list.innerHTML = `<div class="settings-empty">저장된 태그가 없어요</div>`;
     return;
   }
-  list.innerHTML = userTags.map((tag, i) => {
-    const usageCount = recipes.filter(r => (r.tags || []).includes(tag)).length;
-    return `
-      <div class="settings-tag-row">
-        <div style="display:flex;align-items:center;gap:2px;">
-          <span class="settings-tag-name">${tag}</span>
-          <span class="settings-tag-usage">(${usageCount}개 레시피)</span>
-        </div>
-        <button class="btn-tag-delete" onclick="deleteTag(${i})">삭제</button>
-      </div>`;
+  list.innerHTML = userTags.map(tag => {
+    const usageCount = recipes.filter(r => (r.tags || []).includes(tag.name)).length;
+    return `<div class="settings-tag-row">
+      <div style="display:flex;align-items:center;">
+        <span class="settings-tag-name">${tag.name}</span>
+        <span class="settings-tag-usage">(${usageCount}개 레시피)</span>
+      </div>
+      <button class="btn-tag-delete" onclick="deleteTag(${tag.id}, '${tag.name}')">삭제</button>
+    </div>`;
   }).join('');
 }
 
-function addNewTag() {
+async function addNewTag() {
   const input = document.getElementById('newTagInput');
   const val = input.value.trim().replace(/^#/, '');
   if (!val) return;
-  if (userTags.includes(val)) { alert('이미 있는 태그예요'); return; }
-  userTags.push(val);
-  saveTags();
-  input.value = '';
-  renderSettingsTagList();
-  buildTagFilter();
-  renderPresets();
+  if (userTags.find(t => t.name === val)) { alert('이미 있는 태그예요'); return; }
+  try {
+    const result = await api.addTag(val);
+    const newTag = Array.isArray(result) ? result[0] : result;
+    userTags.push(newTag);
+    input.value = '';
+    renderSettingsTagList();
+    buildTagFilter();
+    renderPresets();
+    showToast('✅ 태그가 추가되었어요');
+  } catch(e) { showToast('⚠️ 태그 추가 실패'); }
 }
 
-function deleteTag(i) {
-  const tag = userTags[i];
-  const usageCount = recipes.filter(r => (r.tags || []).includes(tag)).length;
+async function deleteTag(id, name) {
+  const usageCount = recipes.filter(r => (r.tags || []).includes(name)).length;
   const msg = usageCount > 0
-    ? `"${tag}" 태그를 삭제할까요?\n(${usageCount}개 레시피에서도 제거됩니다)`
-    : `"${tag}" 태그를 삭제할까요?`;
+    ? `"${name}" 태그를 삭제할까요?\n(${usageCount}개 레시피에서도 제거됩니다)`
+    : `"${name}" 태그를 삭제할까요?`;
   if (!confirm(msg)) return;
 
-  // 레시피에서도 해당 태그 제거
-  recipes = recipes.map(r => ({ ...r, tags: (r.tags || []).filter(t => t !== tag) }));
-  userTags.splice(i, 1);
+  try {
+    await api.deleteTag(id);
 
-  // activeTag가 삭제된 태그면 'all'로 리셋
-  if (activeTag === tag) activeTag = 'all';
+    // 레시피에서도 해당 태그 제거 (DB 업데이트)
+    const affected = recipes.filter(r => (r.tags || []).includes(name));
+    await Promise.all(affected.map(r =>
+      api.updateRecipe(r.id, { tags: r.tags.filter(t => t !== name) })
+    ));
 
-  save(); saveTags();
-  renderSettingsTagList();
-  buildTagFilter();
-  render();
+    recipes = recipes.map(r => ({ ...r, tags: (r.tags || []).filter(t => t !== name) }));
+    userTags = userTags.filter(t => t.id !== id);
+    if (activeTag === name) activeTag = 'all';
+
+    renderSettingsTagList();
+    buildTagFilter();
+    render();
+    showToast('🗑️ 태그가 삭제되었어요');
+  } catch(e) { showToast('⚠️ 태그 삭제 실패'); }
 }
 
-// ── DATA BACKUP / RESTORE ─────────────────────────────
+// ── BACKUP / RESTORE ──────────────────────────────────
 function exportData() {
   const data = { recipes, tags: userTags, exportedAt: new Date().toISOString() };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -562,22 +673,25 @@ function exportData() {
   a.click();
 }
 
-function importData(e) {
+async function importData(e) {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = (ev) => {
+  reader.onload = async (ev) => {
     try {
       const data = JSON.parse(ev.target.result);
       if (!data.recipes) { alert('올바른 백업 파일이 아니에요'); return; }
-      if (!confirm(`${data.recipes.length}개의 레시피를 불러올까요?\n현재 데이터는 덮어씌워집니다.`)) return;
-      recipes = data.recipes;
-      if (data.tags) userTags = data.tags;
-      save(); saveTags();
-      buildTagFilter(); render();
+      if (!confirm(`${data.recipes.length}개의 레시피를 불러올까요?\n현재 데이터에 추가됩니다.`)) return;
+
+      for (const r of data.recipes) {
+        const { id, created_at, ...recipeData } = r;
+        await api.addRecipe(recipeData);
+      }
+      recipes = await api.getRecipes();
+      render();
       closeSettings();
-      alert('복원 완료!');
-    } catch { alert('파일을 읽을 수 없어요'); }
+      showToast(`✅ ${data.recipes.length}개 레시피 복원 완료`);
+    } catch { showToast('⚠️ 파일을 읽을 수 없어요'); }
   };
   reader.readAsText(file);
   e.target.value = '';
