@@ -163,7 +163,11 @@
   /* SETTINGS */
   .settings-section-title { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 14px; }
   .settings-tag-list { display: flex; flex-direction: column; gap: 2px; }
-  .settings-tag-row { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; background: var(--white); border: 1px solid var(--border); border-radius: 4px; }
+  .settings-tag-row { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; background: var(--white); border: 1px solid var(--border); border-radius: 4px; transition: box-shadow 0.15s, transform 0.15s; user-select: none; }
+  .settings-tag-row.dragging { opacity: 0.5; box-shadow: 0 4px 16px rgba(0,0,0,0.15); transform: scale(1.02); background: var(--surface); }
+  .settings-tag-row.drag-over { border-color: var(--black); border-style: dashed; }
+  .drag-handle { color: var(--muted); font-size: 1rem; cursor: grab; padding: 0 8px 0 0; line-height: 1; touch-action: none; }
+  .drag-handle:active { cursor: grabbing; }
   .settings-tag-name { font-size: 0.85rem; color: var(--charcoal); }
   .settings-tag-usage { font-size: 0.72rem; color: var(--muted); margin-left: 8px; }
   .btn-tag-delete { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 0.75rem; padding: 4px 8px; border-radius: 3px; transition: all 0.12s; }
@@ -295,7 +299,7 @@ const api = {
   },
 
   async getTags() {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/tags?order=name.asc`, { headers: this.headers });
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/tags?order=sort_order.asc,id.asc`, { headers: this.headers });
     return res.json();
   },
 
@@ -324,6 +328,12 @@ const api = {
       method: 'POST', headers: this.headers, body: JSON.stringify({ name })
     });
     return res.json();
+  },
+
+  async updateTagOrder(id, sort_order) {
+    await fetch(`${SUPABASE_URL}/rest/v1/tags?id=eq.${id}`, {
+      method: 'PATCH', headers: this.headers, body: JSON.stringify({ sort_order })
+    });
   },
 
   async deleteTag(id) {
@@ -516,7 +526,7 @@ function openModal() {
   renderTagChips();
   renderPresets();
   document.getElementById('modalOverlay').classList.add('open');
-  setTimeout(() => document.getElementById('f_title').focus(), 200);
+  setTimeout(() => document.getElementById('f_url').focus(), 200);
 }
 
 function openEditModal(id) {
@@ -547,7 +557,7 @@ function openEditModal(id) {
   });
 
   document.getElementById('modalOverlay').classList.add('open');
-  setTimeout(() => document.getElementById('f_title').focus(), 200);
+  setTimeout(() => document.getElementById('f_url').focus(), 200);
 }
 
 function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
@@ -660,14 +670,109 @@ function renderSettingsTagList() {
   }
   list.innerHTML = userTags.map(tag => {
     const usageCount = recipes.filter(r => (r.tags || []).includes(tag.name)).length;
-    return `<div class="settings-tag-row">
-      <div style="display:flex;align-items:center;">
+    return `<div class="settings-tag-row" draggable="true" data-id="${tag.id}" data-name="${tag.name}">
+      <div style="display:flex;align-items:center;gap:2px;">
+        <span class="drag-handle">⠿</span>
         <span class="settings-tag-name">${tag.name}</span>
         <span class="settings-tag-usage">(${usageCount}개 레시피)</span>
       </div>
       <button class="btn-tag-delete" onclick="deleteTag(${tag.id}, '${tag.name}')">삭제</button>
     </div>`;
   }).join('');
+  initDragAndDrop();
+}
+
+function initDragAndDrop() {
+  const list = document.getElementById('settingsTagList');
+  const rows = list.querySelectorAll('.settings-tag-row');
+  let dragSrc = null;
+
+  rows.forEach(row => {
+    // 마우스 드래그
+    row.addEventListener('dragstart', e => {
+      dragSrc = row;
+      row.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    row.addEventListener('dragend', () => {
+      row.classList.remove('dragging');
+      list.querySelectorAll('.settings-tag-row').forEach(r => r.classList.remove('drag-over'));
+    });
+    row.addEventListener('dragover', e => {
+      e.preventDefault();
+      if (row !== dragSrc) {
+        list.querySelectorAll('.settings-tag-row').forEach(r => r.classList.remove('drag-over'));
+        row.classList.add('drag-over');
+      }
+    });
+    row.addEventListener('drop', e => {
+      e.preventDefault();
+      if (dragSrc && row !== dragSrc) {
+        const allRows = [...list.querySelectorAll('.settings-tag-row')];
+        const srcIdx = allRows.indexOf(dragSrc);
+        const tgtIdx = allRows.indexOf(row);
+        if (srcIdx < tgtIdx) list.insertBefore(dragSrc, row.nextSibling);
+        else list.insertBefore(dragSrc, row);
+        saveTagOrder();
+      }
+      row.classList.remove('drag-over');
+    });
+
+    // 터치 드래그 (모바일)
+    let touchStartY = 0;
+    let touchRow = null;
+    row.addEventListener('touchstart', e => {
+      touchRow = row;
+      touchStartY = e.touches[0].clientY;
+      row.classList.add('dragging');
+    }, { passive: true });
+    row.addEventListener('touchmove', e => {
+      e.preventDefault();
+      const y = e.touches[0].clientY;
+      const allRows = [...list.querySelectorAll('.settings-tag-row')];
+      allRows.forEach(r => r.classList.remove('drag-over'));
+      const target = allRows.find(r => {
+        const rect = r.getBoundingClientRect();
+        return y >= rect.top && y <= rect.bottom && r !== touchRow;
+      });
+      if (target) target.classList.add('drag-over');
+    }, { passive: false });
+    row.addEventListener('touchend', e => {
+      row.classList.remove('dragging');
+      const y = e.changedTouches[0].clientY;
+      const allRows = [...list.querySelectorAll('.settings-tag-row')];
+      allRows.forEach(r => r.classList.remove('drag-over'));
+      const target = allRows.find(r => {
+        const rect = r.getBoundingClientRect();
+        return y >= rect.top && y <= rect.bottom && r !== touchRow;
+      });
+      if (target) {
+        const srcIdx = allRows.indexOf(touchRow);
+        const tgtIdx = allRows.indexOf(target);
+        if (srcIdx < tgtIdx) list.insertBefore(touchRow, target.nextSibling);
+        else list.insertBefore(touchRow, target);
+        saveTagOrder();
+      }
+    });
+  });
+}
+
+async function saveTagOrder() {
+  const list = document.getElementById('settingsTagList');
+  const rows = [...list.querySelectorAll('.settings-tag-row')];
+  const newOrder = rows.map((row, i) => ({ id: parseInt(row.dataset.id), sort_order: i }));
+
+  // userTags 순서 업데이트
+  userTags = newOrder.map(o => userTags.find(t => t.id === o.id)).filter(Boolean);
+
+  // DB 업데이트
+  try {
+    await Promise.all(newOrder.map(o => api.updateTagOrder(o.id, o.sort_order)));
+    buildTagFilter();
+    showToast('✅ 태그 순서가 저장되었어요');
+  } catch(e) {
+    showToast('⚠️ 순서 저장 실패');
+  }
 }
 
 async function addNewTag() {
