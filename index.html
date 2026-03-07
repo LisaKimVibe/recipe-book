@@ -89,15 +89,14 @@
   .card-action-btn { background: rgba(255,255,255,0.9); border: 1px solid var(--border); border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.65rem; color: var(--muted); }
   .card-action-btn.edit:hover { color: var(--charcoal); }
   .card-action-btn.delete:hover { color: var(--danger); }
-  /* ⋮ 메뉴 버튼 - 모바일에서 항상 표시 */
+  /* ⋮ 버튼 - 모바일에서만 표시 */
   .btn-more { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.85); border: 1px solid var(--border); display: none; align-items: center; justify-content: center; font-size: 1rem; cursor: pointer; color: var(--charcoal); z-index: 10; line-height: 1; }
-  @media (hover: none) { .btn-more { display: flex; } .card-actions { display: none; } }
-  /* ⋮ 드롭다운 메뉴 */
-  .more-menu { position: fixed; background: var(--white); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 400; min-width: 140px; overflow: hidden; display: none; }
-  .more-menu.open { display: block; }
-  .more-menu-item { display: flex; align-items: center; gap: 10px; padding: 14px 18px; font-size: 0.85rem; cursor: pointer; color: var(--charcoal); }
-  .more-menu-item:hover { background: var(--surface); }
-  .more-menu-item.delete { color: var(--danger); }
+  @media (hover: none) {
+    .btn-more { display: flex; }
+    .card-actions { display: none; }
+    .card.actions-visible .card-actions { display: flex; opacity: 1; }
+    .card.actions-visible .btn-more { display: none; }
+  }
 
   /* EMPTY / LOADING */
   .empty { text-align: center; padding: 80px 20px; }
@@ -280,47 +279,35 @@
   </div>
 </div>
 
-<div class="more-menu" id="moreMenu">
-  <div class="more-menu-item" id="moreEdit" onclick="closeMoreMenu()">✏️ &nbsp;수정</div>
-  <div class="more-menu-item delete" id="moreDelete" onclick="closeMoreMenu()">✕ &nbsp;삭제</div>
-</div>
-
 <script>
 
 // ── MORE MENU ─────────────────────────────────────────
 let moreMenuTargetId = null;
+let moreMenuTimer = null;
 
 function openMoreMenu(e, id) {
+  const card = e.target.closest('.card');
+  // 다른 카드 열려있으면 먼저 닫기
+  closeMoreMenu();
   moreMenuTargetId = id;
-  const menu = document.getElementById('moreMenu');
-  const btnRect = e.target.getBoundingClientRect();
-  menu.classList.add('open');
-
-  // 위치 계산
-  const menuW = 140;
-  let left = btnRect.right - menuW;
-  let top = btnRect.bottom + 4;
-  if (left < 8) left = 8;
-  if (top + 100 > window.innerHeight) top = btnRect.top - 104;
-  menu.style.left = left + 'px';
-  menu.style.top = top + 'px';
-
-  document.getElementById('moreEdit').onclick = () => { closeMoreMenu(); openEditModal(id); };
-  document.getElementById('moreDelete').onclick = () => { closeMoreMenu(); deleteItem(id); };
-
-  setTimeout(() => document.addEventListener('touchstart', closeMoreMenuOutside, { once: true, passive: true }), 100);
+  card.classList.add('actions-visible');
+  // 3초 후 자동으로 사라짐
+  moreMenuTimer = setTimeout(() => closeMoreMenu(), 3000);
 }
 
 function closeMoreMenu() {
-  document.getElementById('moreMenu').classList.remove('open');
+  clearTimeout(moreMenuTimer);
+  document.querySelectorAll('.card.actions-visible')
+    .forEach(c => c.classList.remove('actions-visible'));
   moreMenuTargetId = null;
 }
 
-function closeMoreMenuOutside(e) {
-  if (!e.target.closest('#moreMenu') && !e.target.closest('.btn-more')) {
+// 카드 밖 터치하면 닫힘
+document.addEventListener('touchstart', e => {
+  if (moreMenuTargetId && !e.target.closest('.card')) {
     closeMoreMenu();
   }
-}
+}, { passive: true });
 
 // ── SUPABASE ──────────────────────────────────────────
 const SUPABASE_URL = 'https://wyfstijjrfdajbsbmban.supabase.co';
