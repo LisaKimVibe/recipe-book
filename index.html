@@ -89,6 +89,15 @@
   .card-action-btn { background: rgba(255,255,255,0.9); border: 1px solid var(--border); border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.65rem; color: var(--muted); }
   .card-action-btn.edit:hover { color: var(--charcoal); }
   .card-action-btn.delete:hover { color: var(--danger); }
+  /* ⋮ 메뉴 버튼 - 모바일에서 항상 표시 */
+  .btn-more { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.85); border: 1px solid var(--border); display: none; align-items: center; justify-content: center; font-size: 1rem; cursor: pointer; color: var(--charcoal); z-index: 10; line-height: 1; }
+  @media (hover: none) { .btn-more { display: flex; } .card-actions { display: none; } }
+  /* ⋮ 드롭다운 메뉴 */
+  .more-menu { position: fixed; background: var(--white); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 400; min-width: 140px; overflow: hidden; display: none; }
+  .more-menu.open { display: block; }
+  .more-menu-item { display: flex; align-items: center; gap: 10px; padding: 14px 18px; font-size: 0.85rem; cursor: pointer; color: var(--charcoal); }
+  .more-menu-item:hover { background: var(--surface); }
+  .more-menu-item.delete { color: var(--danger); }
 
   /* EMPTY / LOADING */
   .empty { text-align: center; padding: 80px 20px; }
@@ -271,7 +280,48 @@
   </div>
 </div>
 
+<div class="more-menu" id="moreMenu">
+  <div class="more-menu-item" id="moreEdit" onclick="closeMoreMenu()">✏️ &nbsp;수정</div>
+  <div class="more-menu-item delete" id="moreDelete" onclick="closeMoreMenu()">✕ &nbsp;삭제</div>
+</div>
+
 <script>
+
+// ── MORE MENU ─────────────────────────────────────────
+let moreMenuTargetId = null;
+
+function openMoreMenu(e, id) {
+  moreMenuTargetId = id;
+  const menu = document.getElementById('moreMenu');
+  const btnRect = e.target.getBoundingClientRect();
+  menu.classList.add('open');
+
+  // 위치 계산
+  const menuW = 140;
+  let left = btnRect.right - menuW;
+  let top = btnRect.bottom + 4;
+  if (left < 8) left = 8;
+  if (top + 100 > window.innerHeight) top = btnRect.top - 104;
+  menu.style.left = left + 'px';
+  menu.style.top = top + 'px';
+
+  document.getElementById('moreEdit').onclick = () => { closeMoreMenu(); openEditModal(id); };
+  document.getElementById('moreDelete').onclick = () => { closeMoreMenu(); deleteItem(id); };
+
+  setTimeout(() => document.addEventListener('touchstart', closeMoreMenuOutside, { once: true, passive: true }), 100);
+}
+
+function closeMoreMenu() {
+  document.getElementById('moreMenu').classList.remove('open');
+  moreMenuTargetId = null;
+}
+
+function closeMoreMenuOutside(e) {
+  if (!e.target.closest('#moreMenu') && !e.target.closest('.btn-more')) {
+    closeMoreMenu();
+  }
+}
+
 // ── SUPABASE ──────────────────────────────────────────
 const SUPABASE_URL = 'https://wyfstijjrfdajbsbmban.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5ZnN0aWpqcmZkYWpic2JtYmFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2NjM5NzQsImV4cCI6MjA4ODIzOTk3NH0.Mvl5wRpdZM20ox2chwLNK5KURROtROFVUu_TJPcDkNI';
@@ -462,6 +512,7 @@ function render() {
       <button class="card-action-btn edit" onclick="event.stopPropagation();openEditModal(${featured.id})">✏️</button>
       <button class="card-action-btn delete" onclick="event.stopPropagation();deleteItem(${featured.id})">✕</button>
     </div>
+    <button class="btn-more" onclick="event.stopPropagation();openMoreMenu(event,${featured.id})">⋮</button>
   </div>`;
 
   if (rest.length > 0) {
@@ -482,6 +533,7 @@ function render() {
           <button class="card-action-btn edit" onclick="event.stopPropagation();openEditModal(${r.id})">✏️</button>
           <button class="card-action-btn delete" onclick="event.stopPropagation();deleteItem(${r.id})">✕</button>
         </div>
+        <button class="btn-more" onclick="event.stopPropagation();openMoreMenu(event,${r.id})">⋮</button>
       </div>`;
     });
     html += `</div>`;
