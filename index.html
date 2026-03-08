@@ -638,21 +638,22 @@ async function viewItem(id) {
   const r = items.find(r => String(r.id) === String(id));
   if (!r) return;
   const table = currentTab === 'recipe' ? 'recipes' : 'workouts';
-  // DB업데이트와 URL열기를 동시에 실행
-  const updatePromise = api.updateLastViewed(table, id).then(() => {
-    items = items.map(item => item.id === id ? { ...item, last_viewed_at: new Date().toISOString() } : item);
-    render();
-  }).catch(() => {});
+
+  // URL 열기를 가장 먼저 (터치 이벤트 컨텍스트 안에서)
   if (r.url) {
     if (navigator.standalone) {
-      // 웹 앱 모드 → window.open 시도, 차단되면 location.href
-      const newWin = window.open(r.url, '_blank');
-      if (!newWin) location.href = r.url;
+      // 웹 앱 모드 → 새 창으로 열기 (닫으면 앱으로 복귀)
+      window.open(r.url, '_blank');
     } else {
       window.open(r.url, '_blank');
     }
   }
-  await updatePromise;
+
+  // DB 업데이트는 URL 열기 후 백그라운드로
+  api.updateLastViewed(table, id).then(() => {
+    items = items.map(item => item.id === id ? { ...item, last_viewed_at: new Date().toISOString() } : item);
+    render();
+  }).catch(() => {});
 }
 
 async function deleteItem(id) {
