@@ -635,7 +635,7 @@ function getDomain(url) { try { return new URL(url).hostname.replace('www.', '')
 
 // ── VIEW / DELETE ─────────────────────────────────────
 async function viewItem(id) {
-  const r = items.find(r => r.id === id);
+  const r = items.find(r => String(r.id) === String(id));
   if (!r) return;
   const table = currentTab === 'recipe' ? 'recipes' : 'workouts';
   // DB업데이트와 URL열기를 동시에 실행
@@ -645,14 +645,9 @@ async function viewItem(id) {
   }).catch(() => {});
   if (r.url) {
     if (navigator.standalone) {
-      // 웹 앱 모드 → 새 Safari 창으로 열기 (닫으면 웹 앱으로 복귀)
-      const a = document.createElement('a');
-      a.href = r.url;
-      a.target = '_blank';
-      a.rel = 'noopener';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      // 웹 앱 모드 → window.open 시도, 차단되면 location.href
+      const newWin = window.open(r.url, '_blank');
+      if (!newWin) location.href = r.url;
     } else {
       window.open(r.url, '_blank');
     }
