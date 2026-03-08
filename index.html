@@ -636,7 +636,6 @@ function getDomain(url) { try { return new URL(url).hostname.replace('www.', '')
 // ── VIEW / DELETE ─────────────────────────────────────
 async function viewItem(id) {
   const r = items.find(r => String(r.id) === String(id));
-  showToast(`id:${id} type:${typeof id} found:${!!r}`);
   if (!r) return;
   const table = currentTab === 'recipe' ? 'recipes' : 'workouts';
   // DB업데이트와 URL열기를 동시에 실행
