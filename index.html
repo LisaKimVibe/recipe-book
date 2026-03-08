@@ -636,24 +636,29 @@ function getDomain(url) { try { return new URL(url).hostname.replace('www.', '')
 // ── VIEW / DELETE ─────────────────────────────────────
 async function viewItem(id) {
   const r = items.find(r => String(r.id) === String(id));
+  showToast(`id:${id} type:${typeof id} found:${!!r}`);
   if (!r) return;
   const table = currentTab === 'recipe' ? 'recipes' : 'workouts';
-
-  // URL 열기를 가장 먼저 (터치 이벤트 컨텍스트 안에서)
+  // DB업데이트와 URL열기를 동시에 실행
+  const updatePromise = api.updateLastViewed(table, id).then(() => {
+    items = items.map(item => item.id === id ? { ...item, last_viewed_at: new Date().toISOString() } : item);
+    render();
+  }).catch(() => {});
   if (r.url) {
     if (navigator.standalone) {
-      // 웹 앱 모드 → 새 창으로 열기 (닫으면 앱으로 복귀)
-      window.open(r.url, '_blank');
+      // 웹 앱 모드 → 새 Safari 창으로 열기 (닫으면 웹 앱으로 복귀)
+      const a = document.createElement('a');
+      a.href = r.url;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     } else {
       window.open(r.url, '_blank');
     }
   }
-
-  // DB 업데이트는 URL 열기 후 백그라운드로
-  api.updateLastViewed(table, id).then(() => {
-    items = items.map(item => item.id === id ? { ...item, last_viewed_at: new Date().toISOString() } : item);
-    render();
-  }).catch(() => {});
+  await updatePromise;
 }
 
 async function deleteItem(id) {
