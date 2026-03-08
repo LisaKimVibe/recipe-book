@@ -170,6 +170,30 @@
 </head>
 <body>
 
+<!-- 로그인 화면 -->
+<div id="loginOverlay" style="display:flex; position:fixed; inset:0; background:var(--ivory); z-index:1000; align-items:center; justify-content:center;">
+  <div style="width:100%; max-width:360px; padding:40px 24px;">
+    <div style="text-align:center; margin-bottom:40px;">
+      <div style="font-family:'Playfair Display',serif; font-size:1.2rem; color:var(--muted);">Lisa's</div>
+      <div style="font-family:'Playfair Display',serif; font-size:2rem; font-weight:700; color:var(--black);">Recipe Book</div>
+    </div>
+    <div id="loginForm">
+      <input id="loginEmail" type="email" placeholder="이메일" style="width:100%; padding:14px 16px; border:1.5px solid var(--border); border-radius:10px; font-size:1rem; margin-bottom:12px; box-sizing:border-box; background:var(--white); outline:none;">
+      <input id="loginPassword" type="password" placeholder="비밀번호" style="width:100%; padding:14px 16px; border:1.5px solid var(--border); border-radius:10px; font-size:1rem; margin-bottom:20px; box-sizing:border-box; background:var(--white); outline:none;" onkeydown="if(event.key==='Enter')handleLogin()">
+      <button onclick="handleLogin()" style="width:100%; padding:15px; background:var(--black); color:var(--white); border:none; border-radius:10px; font-size:1rem; font-weight:600; cursor:pointer;">로그인</button>
+      <div id="loginError" style="color:var(--danger); font-size:0.85rem; text-align:center; margin-top:12px; display:none;"></div>
+    </div>
+    <div id="newPasswordForm" style="display:none;">
+      <div style="text-align:center; margin-bottom:20px; font-size:0.9rem; color:var(--muted);">새 비밀번호를 설정해주세요</div>
+      <input id="newPassword" type="password" placeholder="새 비밀번호" style="width:100%; padding:14px 16px; border:1.5px solid var(--border); border-radius:10px; font-size:1rem; margin-bottom:12px; box-sizing:border-box; background:var(--white); outline:none;">
+      <input id="newPasswordConfirm" type="password" placeholder="새 비밀번호 확인" style="width:100%; padding:14px 16px; border:1.5px solid var(--border); border-radius:10px; font-size:1rem; margin-bottom:20px; box-sizing:border-box; background:var(--white); outline:none;" onkeydown="if(event.key==='Enter')handleNewPassword()">
+      <button onclick="handleNewPassword()" style="width:100%; padding:15px; background:var(--black); color:var(--white); border:none; border-radius:10px; font-size:1rem; font-weight:600; cursor:pointer;">변경하기</button>
+      <div id="newPasswordError" style="color:var(--danger); font-size:0.85rem; text-align:center; margin-top:12px; display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<div id="appContainer" style="display:none;">
 <header>
   <div class="header-top">
     <div>
@@ -179,6 +203,7 @@
     <div class="header-actions">
       <button class="btn-icon" id="btnSearch" onclick="toggleSearch()">🔍</button>
       <button class="btn-icon" id="btnSettings" onclick="openSettings()">⚙️</button>
+      <button class="btn-icon" onclick="cognitoLogout()" title="로그아웃">🚪</button>
     </div>
   </div>
   <div class="tabs">
@@ -216,7 +241,7 @@
           </div>
           <div id="thumbEmpty" style="display:none; color:var(--muted); font-size:0.75rem; padding:20px;">썸네일을 가져올 수 없어요 😅</div>
           <img id="thumbImg" style="display:none; width:100%; height:100%; object-fit:cover;" alt="썸네일">
-          <button onclick="removeThumbnail()" id="thumbRemove" style="display:none; position:absolute; top:6px; right:6px; background:rgba(0,0,0,0.5); color:#fff; border:none; border-radius:50%; width:24px; height:24px; font-size:0.7rem; cursor:pointer; align-items:center; justify-content:center; line-height;1 padding;0;">✕</button>
+          <button onclick="removeThumbnail()" id="thumbRemove" style="display:none; position:absolute; top:6px; right:6px; background:rgba(0,0,0,0.5); color:#fff; border:none; border-radius:50%; width:24px; height:24px; font-size:0.7rem; cursor:pointer; align-items:center; justify-content:center; line-height:1; padding:0;">✕</button>
         </div>
       </div>
       <div class="field">
@@ -308,6 +333,78 @@ document.addEventListener('touchstart', e => {
     closeMoreMenu();
   }
 }, { passive: true });
+
+// ── COGNITO ───────────────────────────────────────────
+const COGNITO_REGION = 'ap-northeast-2';
+const COGNITO_POOL_ID = 'ap-northeast-2_yvF1GF6C7';
+const COGNITO_CLIENT_ID = '1ijie2ntt4p5phv6cme7sjra1j';
+const COGNITO_URL = `https://cognito-idp.${COGNITO_REGION}.amazonaws.com/`;
+
+let authToken = null;
+
+async function cognitoLogin(email, password) {
+  const res = await fetch(COGNITO_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-amz-json-1.1',
+      'X-Amz-Target': 'AWSCognitoIdentityProviderService.InitiateAuth'
+    },
+    body: JSON.stringify({
+      AuthFlow: 'USER_PASSWORD_AUTH',
+      ClientId: COGNITO_CLIENT_ID,
+      AuthParameters: { USERNAME: email, PASSWORD: password }
+    })
+  });
+  const data = await res.json();
+  if (data.ChallengeName === 'NEW_PASSWORD_REQUIRED') {
+    return { challenge: 'NEW_PASSWORD_REQUIRED', session: data.Session };
+  }
+  if (data.AuthenticationResult) {
+    authToken = data.AuthenticationResult.IdToken;
+    localStorage.setItem('authToken', authToken);
+    return { success: true };
+  }
+  throw new Error(data.message || '로그인 실패');
+}
+
+async function cognitoNewPassword(email, newPassword, session) {
+  const res = await fetch(COGNITO_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-amz-json-1.1',
+      'X-Amz-Target': 'AWSCognitoIdentityProviderService.RespondToAuthChallenge'
+    },
+    body: JSON.stringify({
+      ChallengeName: 'NEW_PASSWORD_REQUIRED',
+      ClientId: COGNITO_CLIENT_ID,
+      ChallengeResponses: { USERNAME: email, NEW_PASSWORD: newPassword },
+      Session: session
+    })
+  });
+  const data = await res.json();
+  if (data.AuthenticationResult) {
+    authToken = data.AuthenticationResult.IdToken;
+    localStorage.setItem('authToken', authToken);
+    return { success: true };
+  }
+  throw new Error(data.message || '비밀번호 변경 실패');
+}
+
+function cognitoLogout() {
+  authToken = null;
+  localStorage.removeItem('authToken');
+  showLoginScreen();
+}
+
+function showLoginScreen() {
+  document.getElementById('loginOverlay').style.display = 'flex';
+  document.getElementById('appContainer').style.display = 'none';
+}
+
+function showAppScreen() {
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('appContainer').style.display = 'block';
+}
 
 // ── API GATEWAY ───────────────────────────────────────
 const API_URL = 'https://pbmwvqiac2.execute-api.ap-northeast-2.amazonaws.com';
@@ -569,7 +666,7 @@ async function deleteItem(id) {
   const sid = String(id);
   try {
     await api.deleteItem(table, sid);
-    items = items.filter(r => String(r.id)!== sid);
+    items = items.filter(r => String(r.id) !== sid);
     render();
     showToast('🗑️ 삭제되었어요');
   } catch(e) { showToast('⚠️ 삭제 실패'); }
@@ -940,7 +1037,62 @@ async function importData(e) {
   e.target.value = '';
 }
 
-init();
+// ── AUTH HANDLERS ─────────────────────────────────────
+let pendingSession = null;
+let pendingEmail = null;
+
+async function handleLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.style.display = 'none';
+  try {
+    const result = await cognitoLogin(email, password);
+    if (result.challenge === 'NEW_PASSWORD_REQUIRED') {
+      pendingSession = result.session;
+      pendingEmail = email;
+      document.getElementById('loginForm').style.display = 'none';
+      document.getElementById('newPasswordForm').style.display = 'block';
+    } else {
+      showAppScreen();
+      await init();
+    }
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }
+}
+
+async function handleNewPassword() {
+  const newPw = document.getElementById('newPassword').value;
+  const confirm = document.getElementById('newPasswordConfirm').value;
+  const errEl = document.getElementById('newPasswordError');
+  errEl.style.display = 'none';
+  if (newPw !== confirm) {
+    errEl.textContent = '비밀번호가 일치하지 않아요';
+    errEl.style.display = 'block';
+    return;
+  }
+  try {
+    await cognitoNewPassword(pendingEmail, newPw, pendingSession);
+    showAppScreen();
+    await init();
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }
+}
+
+// ── STARTUP ───────────────────────────────────────────
+const savedToken = localStorage.getItem('authToken');
+if (savedToken) {
+  authToken = savedToken;
+  showAppScreen();
+  init();
+} else {
+  showLoginScreen();
+}
 </script>
+</div> <!-- appContainer -->
 </body>
 </html>
