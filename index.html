@@ -491,10 +491,23 @@ async function loadTabData() {
   const table = currentTab === 'recipe' ? 'recipes' : 'workouts';
   try {
     [items, userTags] = await Promise.all([api.getItems(table), api.getTags(currentTab)]);
+    // 최근 본 순서로 정렬 (last_viewed_at 없으면 created_at 기준)
+    items.sort((a, b) => {
+      const aTime = a.last_viewed_at || a.created_at || '';
+      const bTime = b.last_viewed_at || b.created_at || '';
+      return new Date(bTime) - new Date(aTime);
+    });
   } catch(e) { showToast('⚠️ 데이터 로딩 실패'); }
   buildTagFilter();
   render();
 }
+
+// 앱으로 돌아올 때 자동 refresh
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    loadTabData();
+  }
+});
 
 // ── TAB ───────────────────────────────────────────────
 function switchTab(tab) {
