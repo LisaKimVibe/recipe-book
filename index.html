@@ -883,7 +883,7 @@ async function fetchThumbnail() {
         showThumbImg(s3Data.url);
         return;
       }
-    } catch(e) {}
+    } catch(e) { console.error('S3 thumbnail error:', e); }
     // S3 실패시 유튜브 URL 직접 사용
     document.getElementById('f_thumbnail').value = imgUrl;
     showThumbImg(imgUrl);
