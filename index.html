@@ -883,7 +883,7 @@ async function fetchThumbnail() {
         showThumbImg(s3Data.url);
         return;
       }
-    } catch(e) { console.error('S3 thumbnail error:', e); }
+    } catch(e) {}
     // S3 실패시 유튜브 URL 직접 사용
     document.getElementById('f_thumbnail').value = imgUrl;
     showThumbImg(imgUrl);
@@ -900,7 +900,25 @@ async function fetchThumbnail() {
     const res = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`);
     const data = await res.json();
     const imgUrl = data?.data?.image?.url || null;
-    if (imgUrl) { document.getElementById('f_thumbnail').value = imgUrl; showThumbImg(imgUrl); }
+    if (imgUrl) {
+      // S3에 썸네일 저장
+      try {
+        const s3Res = await fetch(`${API_URL}/thumbnail`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: imgUrl })
+        });
+        const s3Data = await s3Res.json();
+        if (s3Data.url) {
+          document.getElementById('f_thumbnail').value = s3Data.url;
+          showThumbImg(s3Data.url);
+          return;
+        }
+      } catch(e) {}
+      // S3 실패시 원본 URL 사용
+      document.getElementById('f_thumbnail').value = imgUrl;
+      showThumbImg(imgUrl);
+    }
     else { document.getElementById('thumbLoading').style.display = 'none'; document.getElementById('thumbEmpty').style.display = 'flex'; setTimeout(resetThumbPreview, 2000); }
   } catch(e) {
     document.getElementById('thumbLoading').style.display = 'none';
