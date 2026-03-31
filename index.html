@@ -870,9 +870,24 @@ async function fetchThumbnail() {
   if (ytMatch) {
     const videoId = ytMatch[1];
     const imgUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+    // S3에 썸네일 저장
+    try {
+      const s3Res = await fetch(`${API_URL}/thumbnail`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: imgUrl })
+      });
+      const s3Data = await s3Res.json();
+      if (s3Data.url) {
+        document.getElementById('f_thumbnail').value = s3Data.url;
+        showThumbImg(s3Data.url);
+        return;
+      }
+    } catch(e) {}
+    // S3 실패시 유튜브 URL 직접 사용
     document.getElementById('f_thumbnail').value = imgUrl;
     showThumbImg(imgUrl);
-    return;  // microlink 호출 없이 바로 종료
+    return;
   }
 
   const p = document.getElementById('thumbPreview');
