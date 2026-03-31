@@ -746,10 +746,23 @@ async function saveItem() {
   const btn = document.getElementById('btnSave');
   btn.disabled = true; btn.textContent = '저장 중...';
   const table = currentTab === 'recipe' ? 'recipes' : 'workouts';
+  let thumbnailValue = document.getElementById('f_thumbnail').value || null;
+  // 썸네일이 외부 URL이면 S3에 저장
+  if (thumbnailValue && !thumbnailValue.includes('cloudfront.net')) {
+    try {
+      const s3Res = await fetch(`${API_URL}/thumbnail`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: thumbnailValue })
+      });
+      const s3Data = await s3Res.json();
+      if (s3Data.url) thumbnailValue = s3Data.url;
+    } catch(e) {}
+  }
   const data = {
     title,
     url: document.getElementById('f_url').value.trim(),
-    thumbnail: document.getElementById('f_thumbnail').value || null,
+    thumbnail: thumbnailValue,
     tags: [...currentTags],
     emoji: selectedEmoji,
     memo: document.getElementById('f_memo').value.trim(),
