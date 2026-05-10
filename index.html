@@ -1063,7 +1063,7 @@ async function deleteTag(id, name) {
     const affected = items.filter(r => (r.tags || []).includes(name));
     await Promise.all(affected.map(r => api.updateItem(table, r.id, { tags: r.tags.filter(t => t !== name) })));
     items = items.map(r => ({ ...r, tags: (r.tags || []).filter(t => t !== name) }));
-    userTags = userTags.filter(t => t.id !== id);
+    userTags = userTags.filter(t => String(t.id) !== String(id));
     if (activeTag === name) activeTag = 'all';
     renderSettingsTagList(); buildTagFilter(); render();
     showToast('🗑️ 태그 삭제됨');
