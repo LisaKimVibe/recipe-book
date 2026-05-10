@@ -209,6 +209,7 @@
   <div class="tabs">
     <button class="tab-btn active" id="tabRecipe" onclick="switchTab('recipe')">🍳 Recipe</button>
     <button class="tab-btn" id="tabWorkout" onclick="switchTab('workout')">🏋️ Workout</button>
+    <button class="tab-btn" id="tabGolf" onclick="switchTab('golf')">⛳ Golf</button>
   </div>
   <div id="searchBar">
     <input type="text" id="searchInput" placeholder="검색..." oninput="render()">
@@ -413,7 +414,7 @@ const api = {
   headers: { 'Content-Type': 'application/json' },
 
   async getItems(table) {
-    const type = table === 'recipes' ? 'recipe' : 'workout';
+    const type = table === 'recipes' ? 'recipe' : table === 'workouts' ? 'workout' : 'golf';
     const res = await fetch(`${API_URL}/items?type=${type}`, { headers: this.headers });
     return res.json();
   },
@@ -422,7 +423,7 @@ const api = {
     return res.json();
   },
   async addItem(table, data) {
-    const type = table === 'recipes' ? 'recipe' : 'workout';
+    const type = table === 'recipes' ? 'recipe' : table === 'workouts' ? 'workout' : 'golf';
     const res = await fetch(`${API_URL}/items`, {
       method: 'POST', headers: this.headers,
       body: JSON.stringify({ ...data, type })
@@ -430,20 +431,20 @@ const api = {
     return res.json();
   },
   async updateItem(table, id, data) {
-    const type = table === 'recipes' ? 'recipe' : 'workout';
+    const type = table === 'recipes' ? 'recipe' : table === 'workouts' ? 'workout' : 'golf';
     const res = await fetch(`${API_URL}/items/${id}?type=${type}`, {
       method: 'PATCH', headers: this.headers, body: JSON.stringify(data)
     });
     return res.json();
   },
   async deleteItem(table, id) {
-    const type = table === 'recipes' ? 'recipe' : 'workout';
+    const type = table === 'recipes' ? 'recipe' : table === 'workouts' ? 'workout' : 'golf';
     await fetch(`${API_URL}/items/${id}?type=${type}`, {
       method: 'DELETE', headers: this.headers
     });
   },
   async updateLastViewed(table, id) {
-    const type = table === 'recipes' ? 'recipe' : 'workout';
+    const type = table === 'recipes' ? 'recipe' : table === 'workouts' ? 'workout' : 'golf';
     await fetch(`${API_URL}/items/${id}?type=${type}`, {
       method: 'PATCH', headers: this.headers,
       body: JSON.stringify({ last_viewed_at: new Date().toISOString() })
@@ -472,6 +473,7 @@ const api = {
 // ── STATE ─────────────────────────────────────────────
 const RECIPE_EMOJIS = ['🍳','🥘','🍜','🍲','🥗','🍱','🍚','🥩','🍗','🥦','🍝','🍛','🥟','🍤','🎂'];
 const WORKOUT_EMOJIS = ['💪','🏋️','🤸','🧘','🏃','⚡','🔥','🎯','🦵','🦾','🏊','🚴','🤼','🥊','🧗'];
+const GOLF_EMOJIS = ['⛳','🏌️','🏌️‍♀️','🎯','🏆','⚡','💪','🔥','🎬','📐','📏','✅','🎥','📸','🌟'];
 
 let currentTab = 'recipe';
 let items = [];
@@ -488,7 +490,7 @@ async function init() {
 
 async function loadTabData() {
   showLoading();
-  const table = currentTab === 'recipe' ? 'recipes' : 'workouts';
+  const table = currentTab === 'recipe' ? 'recipes' : currentTab === 'workout' ? 'workouts' : 'golfs';
   try {
     [items, userTags] = await Promise.all([api.getItems(table), api.getTags(currentTab)]);
     // 최근 본 순서로 정렬 (last_viewed_at 없으면 created_at 기준)
@@ -575,6 +577,7 @@ function render() {
 
   const main = document.getElementById('main');
   const isRecipe = currentTab === 'recipe';
+  const isGolf = currentTab === 'golf';
 
   if (filtered.length === 0) {
     main.innerHTML = `<div class="empty">
@@ -650,7 +653,7 @@ function getDomain(url) { try { return new URL(url).hostname.replace('www.', '')
 async function viewItem(id) {
   const r = items.find(r => String(r.id) === String(id));
   if (!r) return;
-  const table = currentTab === 'recipe' ? 'recipes' : 'workouts';
+  const table = currentTab === 'recipe' ? 'recipes' : currentTab === 'workout' ? 'workouts' : 'golfs';
   // DB업데이트와 URL열기를 동시에 실행
   const updatePromise = api.updateLastViewed(table, id).then(() => {
     items = items.map(item => item.id === id ? { ...item, last_viewed_at: new Date().toISOString() } : item);
@@ -675,7 +678,7 @@ async function viewItem(id) {
 
 async function deleteItem(id) {
   if (!confirm('삭제할까요?')) return;
-  const table = currentTab === 'recipe' ? 'recipes' : 'workouts';
+  const table = currentTab === 'recipe' ? 'recipes' : currentTab === 'workout' ? 'workouts' : 'golfs';
   const sid = String(id);
   try {
     await api.deleteItem(table, sid);
@@ -689,6 +692,7 @@ async function deleteItem(id) {
 function openModal() {
   editingId = null;
   const isRecipe = currentTab === 'recipe';
+  const isGolf = currentTab === 'golf';
   document.getElementById('modalTitle').textContent = isRecipe ? '새 레시피' : '새 운동';
   document.getElementById('btnSave').textContent = '저장하기';
   document.getElementById('f_id').value = '';
@@ -715,6 +719,7 @@ function openEditModal(id) {
   if (!r) return;
   editingId = id;
   const isRecipe = currentTab === 'recipe';
+  const isGolf = currentTab === 'golf';
   document.getElementById('modalTitle').textContent = isRecipe ? '레시피 수정' : '운동 수정';
   document.getElementById('btnSave').textContent = '수정 저장';
   document.getElementById('f_id').value = r.id;
@@ -745,7 +750,7 @@ async function saveItem() {
   if (!title) { alert('이름을 입력해주세요'); return; }
   const btn = document.getElementById('btnSave');
   btn.disabled = true; btn.textContent = '저장 중...';
-  const table = currentTab === 'recipe' ? 'recipes' : 'workouts';
+  const table = currentTab === 'recipe' ? 'recipes' : currentTab === 'workout' ? 'workouts' : 'golfs';
   let thumbnailValue = document.getElementById('f_thumbnail').value || null;
   // 썸네일이 외부 URL이면 S3에 저장
   if (thumbnailValue && !thumbnailValue.includes('cloudfront.net')) {
@@ -768,6 +773,7 @@ async function saveItem() {
     memo: document.getElementById('f_memo').value.trim(),
   };
   if (currentTab === 'recipe') data.ingredients = document.getElementById('f_ingredients').value.trim();
+  data.type = currentTab;
   try {
     if (editingId) {
       await api.updateItem(table, editingId, data);
@@ -786,7 +792,7 @@ async function saveItem() {
 
 // ── EMOJI ─────────────────────────────────────────────
 function buildEmojiPicker() {
-  const emojis = currentTab === 'recipe' ? RECIPE_EMOJIS : WORKOUT_EMOJIS;
+  const emojis = currentTab === 'recipe' ? RECIPE_EMOJIS : currentTab === 'workout' ? WORKOUT_EMOJIS : GOLF_EMOJIS;
   const er = document.getElementById('emojiRow');
   er.innerHTML = '';
   emojis.forEach(e => {
@@ -942,7 +948,7 @@ async function fetchThumbnail() {
 
 // ── SETTINGS ──────────────────────────────────────────
 function openSettings() {
-  document.getElementById('settingsTagTitle').textContent = `태그 관리 — ${currentTab === 'recipe' ? 'Recipe' : 'Workout'}`;
+  document.getElementById('settingsTagTitle').textContent = `태그 관리 — ${currentTab === 'recipe' ? 'Recipe' : currentTab === 'workout' ? 'Workout' : 'Golf'}`;
   renderSettingsTagList();
   document.getElementById('newTagInput').value = '';
   document.getElementById('settingsOverlay').classList.add('open');
@@ -1049,7 +1055,7 @@ async function deleteTag(id, name) {
   const usageCount = items.filter(r => (r.tags || []).includes(name)).length;
   const msg = usageCount > 0 ? `"${name}" 태그를 삭제할까요?\n(${usageCount}개 항목에서도 제거됩니다)` : `"${name}" 태그를 삭제할까요?`;
   if (!confirm(msg)) return;
-  const table = currentTab === 'recipe' ? 'recipes' : 'workouts';
+  const table = currentTab === 'recipe' ? 'recipes' : currentTab === 'workout' ? 'workouts' : 'golfs';
   try {
     await api.deleteTag(id);
     const affected = items.filter(r => (r.tags || []).includes(name));
@@ -1082,7 +1088,7 @@ async function importData(e) {
       if (!data.items && !data.recipes) { alert('올바른 백업 파일이 아니에요'); return; }
       const sourceItems = data.items || data.recipes;
       if (!confirm(`${sourceItems.length}개를 불러올까요?\n현재 데이터에 추가됩니다.`)) return;
-      const table = currentTab === 'recipe' ? 'recipes' : 'workouts';
+      const table = currentTab === 'recipe' ? 'recipes' : currentTab === 'workout' ? 'workouts' : 'golfs';
       for (const r of sourceItems) {
         const { id, created_at, ...itemData } = r;
         await api.addItem(table, itemData);
