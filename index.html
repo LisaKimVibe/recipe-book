@@ -520,7 +520,7 @@ function switchTab(tab) {
   document.getElementById('btnSearch').classList.remove('active');
   document.getElementById('tabRecipe').classList.toggle('active', tab === 'recipe');
   document.getElementById('tabWorkout').classList.toggle('active', tab === 'workout');
-  document.getElementById('logoMain').textContent = tab === 'recipe' ? 'Recipe Book' : 'Workout Book';
+  document.getElementById('logoMain').textContent = tab === 'recipe' ? 'Recipe Book' : tab === 'workout' ? 'Workout Book' : 'Golf Book';
   loadTabData();
 }
 
@@ -582,7 +582,7 @@ function render() {
   if (filtered.length === 0) {
     main.innerHTML = `<div class="empty">
       <div class="empty-icon">${isRecipe ? '🍽️' : '💪'}</div>
-      <div class="empty-title">${items.length === 0 ? (isRecipe ? '첫 레시피를 저장해보세요' : '첫 운동 영상을 저장해보세요') : '검색 결과가 없어요'}</div>
+      <div class="empty-title">${items.length === 0 ? (isRecipe ? '첫 레시피를 저장해보세요' : isGolf ? '첫 골프 영상을 저장해보세요' : '첫 운동 영상을 저장해보세요') : '검색 결과가 없어요'}</div>
       <div class="empty-desc">${items.length === 0 ? '아래 + 버튼으로 URL과<br>정보를 저장할 수 있어요' : '다른 키워드로 검색해보세요'}</div>
     </div>`;
     return;
