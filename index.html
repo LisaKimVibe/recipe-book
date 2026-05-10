@@ -453,7 +453,7 @@ const api = {
   async addTag(name, category) {
     const res = await fetch(`${API_URL}/tags`, {
       method: 'POST', headers: this.headers,
-      body: JSON.stringify({ name, category, sort_order: 999 })
+      body: JSON.stringify({ name, category, sort_order: (Math.max(0, ...userTags.map(t => t.sort_order || 0)) + 10) })
     });
     return res.json();
   },
@@ -462,8 +462,8 @@ const api = {
       method: 'DELETE', headers: this.headers
     });
   },
-  async updateTagOrder(id, sort_order) {
-    await fetch(`${API_URL}/tags/${id}`, {
+  async updateTagOrder(id, sort_order, category) {
+    await fetch(`${API_URL}/tags/${id}?category=${category}`, {
       method: 'PATCH', headers: this.headers,
       body: JSON.stringify({ sort_order })
     });
@@ -965,7 +965,7 @@ function renderSettingsTagList() {
   if (userTags.length === 0) { list.innerHTML = `<div class="settings-empty">저장된 태그가 없어요</div>`; return; }
   list.innerHTML = userTags.map(tag => {
     const usageCount = items.filter(r => (r.tags || []).includes(tag.name)).length;
-    return `<div class="settings-tag-row" draggable="true" data-id="${tag.id}" data-name="${tag.name}">
+    return `<div class="settings-tag-row" draggable="true" data-id="${tag.id}" data-name="${tag.name}" data-category="${tag.category || currentTab}">
       <div style="display:flex;align-items:center;gap:2px;">
         <span class="drag-handle">⠿</span>
         <span class="settings-tag-name">${tag.name}</span>
@@ -1025,10 +1025,10 @@ function initDragAndDrop() {
 async function saveTagOrder() {
   const list = document.getElementById('settingsTagList');
   const rows = [...list.querySelectorAll('.settings-tag-row')];
-  const newOrder = rows.map((row, i) => ({ id: parseInt(row.dataset.id), sort_order: i }));
-  userTags = newOrder.map(o => userTags.find(t => t.id === o.id)).filter(Boolean);
+  const newOrder = rows.map((row, i) => ({ id: String(row.dataset.id), category: row.dataset.category, sort_order: i * 10 }));
+  userTags = newOrder.map(o => userTags.find(t => String(t.id) === o.id)).filter(Boolean);
   try {
-    await Promise.all(newOrder.map(o => api.updateTagOrder(o.id, o.sort_order)));
+    await Promise.all(newOrder.map(o => api.updateTagOrder(o.id, o.sort_order, o.category)));
     buildTagFilter();
     showToast('✅ 순서 저장됨');
   } catch(e) { showToast('⚠️ 순서 저장 실패'); }
