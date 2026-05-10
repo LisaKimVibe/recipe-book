@@ -457,8 +457,8 @@ const api = {
     });
     return res.json();
   },
-  async deleteTag(id) {
-    await fetch(`${API_URL}/tags/${id}`, {
+  async deleteTag(id, category) {
+    await fetch(`${API_URL}/tags/${id}?category=${category}`, {
       method: 'DELETE', headers: this.headers
     });
   },
@@ -1052,12 +1052,14 @@ async function addNewTag() {
 }
 
 async function deleteTag(id, name) {
+  const tag = userTags.find(t => String(t.id) === String(id));
+  const category = tag?.category || currentTab;
   const usageCount = items.filter(r => (r.tags || []).includes(name)).length;
   const msg = usageCount > 0 ? `"${name}" 태그를 삭제할까요?\n(${usageCount}개 항목에서도 제거됩니다)` : `"${name}" 태그를 삭제할까요?`;
   if (!confirm(msg)) return;
   const table = currentTab === 'recipe' ? 'recipes' : currentTab === 'workout' ? 'workouts' : 'golfs';
   try {
-    await api.deleteTag(id);
+    await api.deleteTag(id, category);
     const affected = items.filter(r => (r.tags || []).includes(name));
     await Promise.all(affected.map(r => api.updateItem(table, r.id, { tags: r.tags.filter(t => t !== name) })));
     items = items.map(r => ({ ...r, tags: (r.tags || []).filter(t => t !== name) }));
