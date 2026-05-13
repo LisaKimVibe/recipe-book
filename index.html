@@ -592,7 +592,7 @@ function render() {
     new Date(b.last_viewed_at) - new Date(a.last_viewed_at)
   );
   const featured = viewed.length > 0 ? viewed[0] : filtered[0];
-  const rest = filtered.filter(r => r.id !== featured.id);
+  const rest = filtered.filter(r => String(r.id) !== String(featured.id));
   const defaultEmoji = isRecipe ? '🍳' : '💪';
   const countLabel = isRecipe ? 'Recipes' : 'Workouts';
 
@@ -656,7 +656,7 @@ async function viewItem(id) {
   const table = currentTab === 'recipe' ? 'recipes' : currentTab === 'workout' ? 'workouts' : 'golfs';
   // DB업데이트와 URL열기를 동시에 실행
   const updatePromise = api.updateLastViewed(table, id).then(() => {
-    items = items.map(item => item.id === id ? { ...item, last_viewed_at: new Date().toISOString() } : item);
+    items = items.map(item => String(item.id) === String(id) ? { ...item, last_viewed_at: new Date().toISOString() } : item);
     render();
   }).catch(() => {});
   if (r.url) {
@@ -777,7 +777,7 @@ async function saveItem() {
   try {
     if (editingId) {
       await api.updateItem(table, editingId, data);
-      items = items.map(r => r.id === editingId ? { ...r, ...data } : r);
+      items = items.map(r => String(r.id) === String(editingId) ? { ...r, ...data } : r);
       showToast('✅ 수정되었어요');
     } else {
       const result = await api.addItem(table, data);
