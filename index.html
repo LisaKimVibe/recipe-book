@@ -773,10 +773,11 @@ async function saveItem() {
     memo: document.getElementById('f_memo').value.trim(),
   };
   if (currentTab === 'recipe') data.ingredients = document.getElementById('f_ingredients').value.trim();
-  data.type = currentTab;
   try {
     if (editingId) {
-      await api.updateItem(table, editingId, data);
+      const updateData = { ...data };
+      delete updateData.type; // DynamoDB Key는 업데이트 불가
+      await api.updateItem(table, editingId, updateData);
       items = items.map(r => String(r.id) === String(editingId) ? { ...r, ...data } : r);
       showToast('✅ 수정되었어요');
     } else {
