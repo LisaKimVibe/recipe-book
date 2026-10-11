@@ -170,30 +170,26 @@
 </head>
 <body>
 
-<!-- 로그인 화면 -->
-<div id="loginOverlay" style="display:flex; position:fixed; inset:0; background:var(--ivory); z-index:1000; align-items:center; justify-content:center;">
-  <div style="width:100%; max-width:360px; padding:40px 24px;">
-    <div style="text-align:center; margin-bottom:40px;">
-      <div style="font-family:'Playfair Display',serif; font-size:1.2rem; color:var(--muted);">Lisa's</div>
-      <div style="font-family:'Playfair Display',serif; font-size:2rem; font-weight:700; color:var(--black);">Recipe Book</div>
-    </div>
-    <div id="loginForm">
-      <input id="loginEmail" type="email" placeholder="이메일" style="width:100%; padding:14px 16px; border:1.5px solid var(--border); border-radius:10px; font-size:1rem; margin-bottom:12px; box-sizing:border-box; background:var(--white); outline:none;">
-      <input id="loginPassword" type="password" placeholder="비밀번호" style="width:100%; padding:14px 16px; border:1.5px solid var(--border); border-radius:10px; font-size:1rem; margin-bottom:20px; box-sizing:border-box; background:var(--white); outline:none;" onkeydown="if(event.key==='Enter')handleLogin()">
-      <button onclick="handleLogin()" style="width:100%; padding:15px; background:var(--black); color:var(--white); border:none; border-radius:10px; font-size:1rem; font-weight:600; cursor:pointer;">로그인</button>
-      <div id="loginError" style="color:var(--danger); font-size:0.85rem; text-align:center; margin-top:12px; display:none;"></div>
-    </div>
-    <div id="newPasswordForm" style="display:none;">
-      <div style="text-align:center; margin-bottom:20px; font-size:0.9rem; color:var(--muted);">새 비밀번호를 설정해주세요</div>
-      <input id="newPassword" type="password" placeholder="새 비밀번호" style="width:100%; padding:14px 16px; border:1.5px solid var(--border); border-radius:10px; font-size:1rem; margin-bottom:12px; box-sizing:border-box; background:var(--white); outline:none;">
-      <input id="newPasswordConfirm" type="password" placeholder="새 비밀번호 확인" style="width:100%; padding:14px 16px; border:1.5px solid var(--border); border-radius:10px; font-size:1rem; margin-bottom:20px; box-sizing:border-box; background:var(--white); outline:none;" onkeydown="if(event.key==='Enter')handleNewPassword()">
-      <button onclick="handleNewPassword()" style="width:100%; padding:15px; background:var(--black); color:var(--white); border:none; border-radius:10px; font-size:1rem; font-weight:600; cursor:pointer;">변경하기</button>
-      <div id="newPasswordError" style="color:var(--danger); font-size:0.85rem; text-align:center; margin-top:12px; display:none;"></div>
-    </div>
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" style="position:fixed; inset:0; background:var(--ivory); z-index:1000; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; padding:40px 24px;">
+  <div style="text-align:center; margin-bottom:8px;">
+    <div style="font-size:0.55rem; letter-spacing:0.2em; color:var(--muted); font-weight:600; margin-bottom:4px;">Lisa's</div>
+    <div style="font-family:'Playfair Display',serif; font-size:2rem; font-weight:700;">Book</div>
+  </div>
+  <div style="width:100%; max-width:320px; display:flex; flex-direction:column; gap:12px;">
+    <input id="loginUser" type="text" placeholder="아이디" onkeydown="handleLoginKey(event)"
+      style="width:100%; background:var(--surface); border:none; border-radius:6px; padding:14px 16px; font-size:1rem; font-family:'DM Sans',sans-serif; outline:none; color:var(--black);">
+    <input id="loginPass" type="password" placeholder="비밀번호" onkeydown="handleLoginKey(event)"
+      style="width:100%; background:var(--surface); border:none; border-radius:6px; padding:14px 16px; font-size:1rem; font-family:'DM Sans',sans-serif; outline:none; color:var(--black);">
+    <button id="btnLogin" onclick="tryLogin()"
+      style="width:100%; background:var(--black); color:var(--ivory); border:none; border-radius:6px; padding:14px; font-size:0.9rem; font-family:'DM Sans',sans-serif; font-weight:600; cursor:pointer; letter-spacing:0.05em;">로그인</button>
+    <div id="loginErr" style="color:var(--danger); font-size:0.82rem; text-align:center; min-height:18px;"></div>
   </div>
 </div>
 
-<div id="appContainer" style="display:none;">
+<!-- APP SCREEN -->
+<div id="appScreen" style="display:none;">
+
 <header>
   <div class="header-top">
     <div>
@@ -203,13 +199,13 @@
     <div class="header-actions">
       <button class="btn-icon" id="btnSearch" onclick="toggleSearch()">🔍</button>
       <button class="btn-icon" id="btnSettings" onclick="openSettings()">⚙️</button>
-      <button class="btn-icon" onclick="cognitoLogout()" title="로그아웃">🚪</button>
     </div>
   </div>
   <div class="tabs">
     <button class="tab-btn active" id="tabRecipe" onclick="switchTab('recipe')">🍳 Recipe</button>
     <button class="tab-btn" id="tabWorkout" onclick="switchTab('workout')">🏋️ Workout</button>
     <button class="tab-btn" id="tabGolf" onclick="switchTab('golf')">⛳ Golf</button>
+    <button class="tab-btn" id="tabTravel" onclick="switchTab('travel')">✈️ Travel</button>
   </div>
   <div id="searchBar">
     <input type="text" id="searchInput" placeholder="검색..." oninput="render()">
@@ -242,7 +238,8 @@
           </div>
           <div id="thumbEmpty" style="display:none; color:var(--muted); font-size:0.75rem; padding:20px;">썸네일을 가져올 수 없어요 😅</div>
           <img id="thumbImg" style="display:none; width:100%; height:100%; object-fit:cover;" alt="썸네일">
-          <button onclick="removeThumbnail()" id="thumbRemove" style="display:none; position:absolute; top:6px; right:6px; background:rgba(0,0,0,0.5); color:#fff; border:none; border-radius:50%; width:24px; height:24px; font-size:0.7rem; cursor:pointer; align-items:center; justify-content:center; line-height:1; padding:0;">✕</button>
+	  <button onclick="removeThumbnail()" id="thumbRemove" style="display:none; position:absolute; top:6px; right:6px; background:rgba(0,0,0,0.5); color:#fff; border:none;
+  border-radius:50%; width:24px; height:24px; font-size:0.7rem; cursor:pointer; align-items:center; justify-content:center; line-height:1; padding:0;">✕</button>
         </div>
       </div>
       <div class="field">
@@ -335,86 +332,33 @@ document.addEventListener('touchstart', e => {
   }
 }, { passive: true });
 
-// ── COGNITO ───────────────────────────────────────────
+// ── AWS / COGNITO ─────────────────────────────────────
 const COGNITO_REGION = 'ap-northeast-2';
 const COGNITO_POOL_ID = 'ap-northeast-2_yvF1GF6C7';
 const COGNITO_CLIENT_ID = '1ijie2ntt4p5phv6cme7sjra1j';
-const COGNITO_URL = `https://cognito-idp.${COGNITO_REGION}.amazonaws.com/`;
+const API_URL = 'https://pbmwvqiac2.execute-api.ap-northeast-2.amazonaws.com';
 
-let authToken = null;
+function getToken() { return localStorage.getItem('id_token'); }
+function setToken(t) { localStorage.setItem('id_token', t); }
+function clearToken() { localStorage.removeItem('id_token'); }
 
-async function cognitoLogin(email, password) {
-  const res = await fetch(COGNITO_URL, {
+async function cognitoAuth(username, password) {
+  const res = await fetch(`https://cognito-idp.${COGNITO_REGION}.amazonaws.com/`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-amz-json-1.1',
-      'X-Amz-Target': 'AWSCognitoIdentityProviderService.InitiateAuth'
-    },
-    body: JSON.stringify({
-      AuthFlow: 'USER_PASSWORD_AUTH',
-      ClientId: COGNITO_CLIENT_ID,
-      AuthParameters: { USERNAME: email, PASSWORD: password }
-    })
+    headers: { 'Content-Type': 'application/x-amz-json-1.1', 'X-Amz-Target': 'AWSCognitoIdentityProviderService.InitiateAuth' },
+    body: JSON.stringify({ AuthFlow: 'USER_PASSWORD_AUTH', ClientId: COGNITO_CLIENT_ID, AuthParameters: { USERNAME: username, PASSWORD: password } })
   });
   const data = await res.json();
-  if (data.ChallengeName === 'NEW_PASSWORD_REQUIRED') {
-    return { challenge: 'NEW_PASSWORD_REQUIRED', session: data.Session };
-  }
-  if (data.AuthenticationResult) {
-    authToken = data.AuthenticationResult.IdToken;
-    localStorage.setItem('authToken', authToken);
-    return { success: true };
-  }
+  if (data.AuthenticationResult) { setToken(data.AuthenticationResult.IdToken); return true; }
   throw new Error(data.message || '로그인 실패');
 }
 
-async function cognitoNewPassword(email, newPassword, session) {
-  const res = await fetch(COGNITO_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-amz-json-1.1',
-      'X-Amz-Target': 'AWSCognitoIdentityProviderService.RespondToAuthChallenge'
-    },
-    body: JSON.stringify({
-      ChallengeName: 'NEW_PASSWORD_REQUIRED',
-      ClientId: COGNITO_CLIENT_ID,
-      ChallengeResponses: { USERNAME: email, NEW_PASSWORD: newPassword },
-      Session: session
-    })
-  });
-  const data = await res.json();
-  if (data.AuthenticationResult) {
-    authToken = data.AuthenticationResult.IdToken;
-    localStorage.setItem('authToken', authToken);
-    return { success: true };
-  }
-  throw new Error(data.message || '비밀번호 변경 실패');
-}
-
-function cognitoLogout() {
-  authToken = null;
-  localStorage.removeItem('authToken');
-  showLoginScreen();
-}
-
-function showLoginScreen() {
-  document.getElementById('loginOverlay').style.display = 'flex';
-  document.getElementById('appContainer').style.display = 'none';
-}
-
-function showAppScreen() {
-  document.getElementById('loginOverlay').style.display = 'none';
-  document.getElementById('appContainer').style.display = 'block';
-}
-
-// ── API GATEWAY ───────────────────────────────────────
-const API_URL = 'https://pbmwvqiac2.execute-api.ap-northeast-2.amazonaws.com';
-
 const api = {
-  headers: { 'Content-Type': 'application/json' },
-
+  get headers() {
+    return { 'Content-Type': 'application/json', 'Authorization': getToken() || '' };
+  },
   async getItems(table) {
-    const type = table === 'recipes' ? 'recipe' : table === 'workouts' ? 'workout' : 'golf';
+    const type = table === 'recipes' ? 'recipe' : table === 'workouts' ? 'workout' : table === 'golfs' ? 'golf' : 'travel';
     const res = await fetch(`${API_URL}/items?type=${type}`, { headers: this.headers });
     return res.json();
   },
@@ -423,57 +367,60 @@ const api = {
     return res.json();
   },
   async addItem(table, data) {
-    const type = table === 'recipes' ? 'recipe' : table === 'workouts' ? 'workout' : 'golf';
+    const type = table === 'recipes' ? 'recipe' : table === 'workouts' ? 'workout' : table === 'golfs' ? 'golf' : 'travel';
     const res = await fetch(`${API_URL}/items`, {
-      method: 'POST', headers: this.headers,
-      body: JSON.stringify({ ...data, type })
+      method: 'POST', headers: this.headers, body: JSON.stringify({ ...data, type })
     });
     return res.json();
   },
   async updateItem(table, id, data) {
-    const type = table === 'recipes' ? 'recipe' : table === 'workouts' ? 'workout' : 'golf';
-    const res = await fetch(`${API_URL}/items/${id}?type=${type}`, {
-      method: 'PATCH', headers: this.headers, body: JSON.stringify(data)
+    const updateData = { ...data };
+    delete updateData.type;
+    const res = await fetch(`${API_URL}/items/${id}`, {
+      method: 'PATCH', headers: this.headers, body: JSON.stringify(updateData)
     });
     return res.json();
   },
   async deleteItem(table, id) {
-    const type = table === 'recipes' ? 'recipe' : table === 'workouts' ? 'workout' : 'golf';
-    await fetch(`${API_URL}/items/${id}?type=${type}`, {
-      method: 'DELETE', headers: this.headers
-    });
+    const type = table === 'recipes' ? 'recipe' : table === 'workouts' ? 'workout' : table === 'golfs' ? 'golf' : 'travel';
+    await fetch(`${API_URL}/items/${id}?type=${type}`, { method: 'DELETE', headers: this.headers });
   },
   async updateLastViewed(table, id) {
-    const type = table === 'recipes' ? 'recipe' : table === 'workouts' ? 'workout' : 'golf';
-    await fetch(`${API_URL}/items/${id}?type=${type}`, {
+    await fetch(`${API_URL}/items/${id}`, {
       method: 'PATCH', headers: this.headers,
       body: JSON.stringify({ last_viewed_at: new Date().toISOString() })
     });
   },
   async addTag(name, category) {
+    const maxOrder = Math.max(0, ...userTags.map(t => t.sort_order || 0)) + 10;
     const res = await fetch(`${API_URL}/tags`, {
       method: 'POST', headers: this.headers,
-      body: JSON.stringify({ name, category, sort_order: (Math.max(0, ...userTags.map(t => t.sort_order || 0)) + 10) })
+      body: JSON.stringify({ name, category, sort_order: maxOrder })
     });
     return res.json();
   },
   async deleteTag(id, category) {
-    await fetch(`${API_URL}/tags/${id}?category=${category}`, {
-      method: 'DELETE', headers: this.headers
-    });
+    await fetch(`${API_URL}/tags/${id}?category=${category}`, { method: 'DELETE', headers: this.headers });
   },
   async updateTagOrder(id, sort_order, category) {
-    await fetch(`${API_URL}/tags/${id}?category=${category}`, {
-      method: 'PATCH', headers: this.headers,
-      body: JSON.stringify({ sort_order })
+    await fetch(`${API_URL}/tags/${id}`, {
+      method: 'PATCH', headers: this.headers, body: JSON.stringify({ sort_order, category })
     });
+  },
+  async uploadThumbnail(url) {
+    const res = await fetch(`${API_URL}/thumbnail`, {
+      method: 'POST', headers: this.headers, body: JSON.stringify({ url })
+    });
+    const data = await res.json();
+    return data.thumbnailUrl || null;
   },
 };
 
 // ── STATE ─────────────────────────────────────────────
 const RECIPE_EMOJIS = ['🍳','🥘','🍜','🍲','🥗','🍱','🍚','🥩','🍗','🥦','🍝','🍛','🥟','🍤','🎂'];
 const WORKOUT_EMOJIS = ['💪','🏋️','🤸','🧘','🏃','⚡','🔥','🎯','🦵','🦾','🏊','🚴','🤼','🥊','🧗'];
-const GOLF_EMOJIS = ['⛳','🏌️','🏌️‍♀️','🎯','🏆','⚡','💪','🔥','🎬','📐','📏','✅','🎥','📸','🌟'];
+  const GOLF_EMOJIS = ['⛳','🏌️','🏌️‍♀️','🎯','🏆','⚡','💪','🔥','🎬','📐','📏','✅','🎥','📸','🌟'];
+  const TRAVEL_EMOJIS = ['✈️','🌏','🏨','🍽️','🚇','🗺️','📸','🏖️','🏔️','🎡','🛳️','🚢','🎭','🛺','🌆'];
 
 let currentTab = 'recipe';
 let items = [];
@@ -483,33 +430,52 @@ let currentTags = [];
 let selectedEmoji = '🍳';
 let editingId = null;
 
+// ── AUTH ──────────────────────────────────────────────
+async function tryLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const btn = document.getElementById('btnLogin');
+  const err = document.getElementById('loginErr');
+  if (!u || !p) { err.textContent = '아이디와 비밀번호를 입력해주세요'; return; }
+  btn.disabled = true; btn.textContent = '로그인 중...';
+  try {
+    await cognitoAuth(u, p);
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = '';
+    await loadTabData();
+  } catch(e) {
+    err.textContent = e.message || '로그인 실패';
+    btn.disabled = false; btn.textContent = '로그인';
+  }
+}
+
+function handleLoginKey(e) { if (e.key === 'Enter') tryLogin(); }
+
 // ── INIT ──────────────────────────────────────────────
 async function init() {
-  await loadTabData();
+  const token = getToken();
+  if (token) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = '';
+    await loadTabData();
+  } else {
+    document.getElementById('loginScreen').style.display = '';
+    document.getElementById('appScreen').style.display = 'none';
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') loadTabData();
+  });
 }
 
 async function loadTabData() {
   showLoading();
-  const table = currentTab === 'recipe' ? 'recipes' : currentTab === 'workout' ? 'workouts' : 'golfs';
+  const table = currentTab === 'recipe' ? 'recipes' : currentTab === 'workout' ? 'workouts' : currentTab === 'golf' ? 'golfs' : 'travels';
   try {
     [items, userTags] = await Promise.all([api.getItems(table), api.getTags(currentTab)]);
-    // 최근 본 순서로 정렬 (last_viewed_at 없으면 created_at 기준)
-    items.sort((a, b) => {
-      const aTime = a.last_viewed_at || a.created_at || '';
-      const bTime = b.last_viewed_at || b.created_at || '';
-      return new Date(bTime) - new Date(aTime);
-    });
   } catch(e) { showToast('⚠️ 데이터 로딩 실패'); }
   buildTagFilter();
   render();
 }
-
-// 앱으로 돌아올 때 자동 refresh
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') {
-    loadTabData();
-  }
-});
 
 // ── TAB ───────────────────────────────────────────────
 function switchTab(tab) {
@@ -520,7 +486,9 @@ function switchTab(tab) {
   document.getElementById('btnSearch').classList.remove('active');
   document.getElementById('tabRecipe').classList.toggle('active', tab === 'recipe');
   document.getElementById('tabWorkout').classList.toggle('active', tab === 'workout');
-  document.getElementById('logoMain').textContent = tab === 'recipe' ? 'Recipe Book' : tab === 'workout' ? 'Workout Book' : 'Golf Book';
+    document.getElementById('tabGolf').classList.toggle('active', tab === 'golf');
+    document.getElementById('tabTravel').classList.toggle('active', tab === 'travel');
+  document.getElementById('logoMain').textContent = tab === 'recipe' ? 'Recipe Book' : tab === 'workout' ? 'Workout Book' : tab === 'golf' ? 'Golf Book' : 'Travel Book';
   loadTabData();
 }
 
@@ -577,12 +545,11 @@ function render() {
 
   const main = document.getElementById('main');
   const isRecipe = currentTab === 'recipe';
-  const isGolf = currentTab === 'golf';
 
   if (filtered.length === 0) {
     main.innerHTML = `<div class="empty">
-      <div class="empty-icon">${isRecipe ? '🍽️' : '💪'}</div>
-      <div class="empty-title">${items.length === 0 ? (isRecipe ? '첫 레시피를 저장해보세요' : isGolf ? '첫 골프 영상을 저장해보세요' : '첫 운동 영상을 저장해보세요') : '검색 결과가 없어요'}</div>
+      <div class="empty-icon">${isRecipe ? '🍽️' : currentTab === 'golf' ? '⛳' : currentTab === 'travel' ? '✈️' : '💪'}</div>
+      <div class="empty-title">${items.length === 0 ? (isRecipe ? '첫 레시피를 저장해보세요' : currentTab === 'golf' ? '첫 골프 영상을 저장해보세요' : currentTab === 'travel' ? '첫 여행 영상을 저장해보세요' : '첫 운동 영상을 저장해보세요') : '검색 결과가 없어요'}</div>
       <div class="empty-desc">${items.length === 0 ? '아래 + 버튼으로 URL과<br>정보를 저장할 수 있어요' : '다른 키워드로 검색해보세요'}</div>
     </div>`;
     return;
@@ -592,9 +559,9 @@ function render() {
     new Date(b.last_viewed_at) - new Date(a.last_viewed_at)
   );
   const featured = viewed.length > 0 ? viewed[0] : filtered[0];
-  const rest = filtered.filter(r => String(r.id) !== String(featured.id));
-  const defaultEmoji = isRecipe ? '🍳' : '💪';
-  const countLabel = isRecipe ? 'Recipes' : 'Workouts';
+  const rest = filtered.filter(r => r.id !== featured.id);
+  const defaultEmoji = isRecipe ? '🍳' : currentTab === 'golf' ? '⛳' : currentTab === 'travel' ? '✈️' : '💪';
+  const countLabel = isRecipe ? 'Recipes' : currentTab === 'golf' ? 'Golfs' : currentTab === 'travel' ? 'Travels' : 'Workouts';
 
   let html = `<div class="count-bar"><span class="count-num">${filtered.length}</span><span class="count-label">${countLabel}</span></div><div class="divider-bold"></div>`;
 
@@ -653,7 +620,7 @@ function getDomain(url) { try { return new URL(url).hostname.replace('www.', '')
 async function viewItem(id) {
   const r = items.find(r => String(r.id) === String(id));
   if (!r) return;
-  const table = currentTab === 'recipe' ? 'recipes' : currentTab === 'workout' ? 'workouts' : 'golfs';
+  const table = currentTab === 'recipe' ? 'recipes' : currentTab === 'workout' ? 'workouts' : currentTab === 'golf' ? 'golfs' : 'travels';
   // DB업데이트와 URL열기를 동시에 실행
   const updatePromise = api.updateLastViewed(table, id).then(() => {
     items = items.map(item => String(item.id) === String(id) ? { ...item, last_viewed_at: new Date().toISOString() } : item);
@@ -678,11 +645,10 @@ async function viewItem(id) {
 
 async function deleteItem(id) {
   if (!confirm('삭제할까요?')) return;
-  const table = currentTab === 'recipe' ? 'recipes' : currentTab === 'workout' ? 'workouts' : 'golfs';
-  const sid = String(id);
+  const table = currentTab === 'recipe' ? 'recipes' : currentTab === 'workout' ? 'workouts' : currentTab === 'golf' ? 'golfs' : 'travels';
   try {
-    await api.deleteItem(table, sid);
-    items = items.filter(r => String(r.id) !== sid);
+    await api.deleteItem(table, id);
+    items = items.filter(r => String(r.id) !== String(id));
     render();
     showToast('🗑️ 삭제되었어요');
   } catch(e) { showToast('⚠️ 삭제 실패'); }
@@ -692,20 +658,19 @@ async function deleteItem(id) {
 function openModal() {
   editingId = null;
   const isRecipe = currentTab === 'recipe';
-  const isGolf = currentTab === 'golf';
-  document.getElementById('modalTitle').textContent = isRecipe ? '새 레시피' : '새 운동';
+  document.getElementById('modalTitle').textContent = isRecipe ? '새 레시피' : currentTab === 'golf' ? '새 골프 영상' : currentTab === 'travel' ? '새 여행 영상' : '새 운동';
   document.getElementById('btnSave').textContent = '저장하기';
   document.getElementById('f_id').value = '';
   document.getElementById('f_thumbnail').value = '';
   document.getElementById('f_url').value = '';
   document.getElementById('f_title').value = '';
-  document.getElementById('f_title_label').textContent = isRecipe ? '요리 이름' : '운동 이름';
-  document.getElementById('f_title').placeholder = isRecipe ? '예: 간장계란볶음밥' : '예: 하체 스쿼트 루틴';
+  document.getElementById('f_title_label').textContent = isRecipe ? '요리 이름' : currentTab === 'golf' ? '영상 제목' : currentTab === 'travel' ? '여행 제목' : '운동 이름';
+  document.getElementById('f_title').placeholder = isRecipe ? '예: 간장계란볶음밥' : currentTab === 'golf' ? '예: 드라이버 스윙 교정' : currentTab === 'travel' ? '예: 도쿄 맛집 탐방' : '예: 하체 스쿼트 루틴';
   document.getElementById('f_ingredients_wrap').style.display = isRecipe ? 'block' : 'none';
   document.getElementById('f_ingredients').value = '';
   document.getElementById('f_memo').value = '';
   currentTags = [];
-  selectedEmoji = isRecipe ? '🍳' : '💪';
+  selectedEmoji = isRecipe ? '🍳' : currentTab === 'golf' ? '⛳' : currentTab === 'travel' ? '✈️' : '💪';
   buildEmojiPicker();
   renderTagChips();
   renderPresets();
@@ -719,20 +684,19 @@ function openEditModal(id) {
   if (!r) return;
   editingId = id;
   const isRecipe = currentTab === 'recipe';
-  const isGolf = currentTab === 'golf';
-  document.getElementById('modalTitle').textContent = isRecipe ? '레시피 수정' : '운동 수정';
+  document.getElementById('modalTitle').textContent = isRecipe ? '레시피 수정' : currentTab === 'golf' ? '골프 영상 수정' : currentTab === 'travel' ? '여행 영상 수정' : '운동 수정';
   document.getElementById('btnSave').textContent = '수정 저장';
   document.getElementById('f_id').value = r.id;
   document.getElementById('f_thumbnail').value = r.thumbnail || '';
   document.getElementById('f_url').value = r.url || '';
   document.getElementById('f_title').value = r.title || '';
-  document.getElementById('f_title_label').textContent = isRecipe ? '요리 이름' : '운동 이름';
-  document.getElementById('f_title').placeholder = isRecipe ? '예: 간장계란볶음밥' : '예: 하체 스쿼트 루틴';
+  document.getElementById('f_title_label').textContent = isRecipe ? '요리 이름' : currentTab === 'golf' ? '영상 제목' : currentTab === 'travel' ? '여행 제목' : '운동 이름';
+  document.getElementById('f_title').placeholder = isRecipe ? '예: 간장계란볶음밥' : currentTab === 'golf' ? '예: 드라이버 스윙 교정' : currentTab === 'travel' ? '예: 도쿄 맛집 탐방' : '예: 하체 스쿼트 루틴';
   document.getElementById('f_ingredients_wrap').style.display = isRecipe ? 'block' : 'none';
   document.getElementById('f_ingredients').value = r.ingredients || '';
   document.getElementById('f_memo').value = r.memo || '';
   currentTags = [...(r.tags || [])];
-  selectedEmoji = r.emoji || (isRecipe ? '🍳' : '💪');
+  selectedEmoji = r.emoji || (isRecipe ? '🍳' : currentTab === 'golf' ? '⛳' : currentTab === 'travel' ? '✈️' : '💪');
   buildEmojiPicker();
   renderTagChips();
   renderPresets();
@@ -750,24 +714,17 @@ async function saveItem() {
   if (!title) { alert('이름을 입력해주세요'); return; }
   const btn = document.getElementById('btnSave');
   btn.disabled = true; btn.textContent = '저장 중...';
-  const table = currentTab === 'recipe' ? 'recipes' : currentTab === 'workout' ? 'workouts' : 'golfs';
-  let thumbnailValue = document.getElementById('f_thumbnail').value || null;
-  // 썸네일이 외부 URL이면 S3에 저장
-  if (thumbnailValue && !thumbnailValue.includes('cloudfront.net')) {
-    try {
-      const s3Res = await fetch(`${API_URL}/thumbnail`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: thumbnailValue })
-      });
-      const s3Data = await s3Res.json();
-      if (s3Data.url) thumbnailValue = s3Data.url;
-    } catch(e) {}
+  const table = currentTab === 'recipe' ? 'recipes' : currentTab === 'workout' ? 'workouts' : currentTab === 'golf' ? 'golfs' : 'travels';
+  const videoUrl = document.getElementById('f_url').value.trim();
+  let thumbnailVal = document.getElementById('f_thumbnail').value || null;
+  // Upload thumbnail to S3 if URL given and thumbnail not yet on CloudFront
+  if (videoUrl && (!thumbnailVal || !thumbnailVal.includes('cloudfront.net'))) {
+    try { thumbnailVal = await api.uploadThumbnail(videoUrl) || thumbnailVal; } catch(_) {}
   }
   const data = {
     title,
-    url: document.getElementById('f_url').value.trim(),
-    thumbnail: thumbnailValue,
+    url: videoUrl,
+    thumbnail: thumbnailVal,
     tags: [...currentTags],
     emoji: selectedEmoji,
     memo: document.getElementById('f_memo').value.trim(),
@@ -775,9 +732,7 @@ async function saveItem() {
   if (currentTab === 'recipe') data.ingredients = document.getElementById('f_ingredients').value.trim();
   try {
     if (editingId) {
-      const updateData = { ...data };
-      delete updateData.type; // DynamoDB Key는 업데이트 불가
-      await api.updateItem(table, editingId, updateData);
+      await api.updateItem(table, editingId, data);
       items = items.map(r => String(r.id) === String(editingId) ? { ...r, ...data } : r);
       showToast('✅ 수정되었어요');
     } else {
@@ -793,7 +748,7 @@ async function saveItem() {
 
 // ── EMOJI ─────────────────────────────────────────────
 function buildEmojiPicker() {
-  const emojis = currentTab === 'recipe' ? RECIPE_EMOJIS : currentTab === 'workout' ? WORKOUT_EMOJIS : GOLF_EMOJIS;
+  const emojis = currentTab === 'recipe' ? RECIPE_EMOJIS : currentTab === 'workout' ? WORKOUT_EMOJIS : currentTab === 'golf' ? GOLF_EMOJIS : TRAVEL_EMOJIS;
   const er = document.getElementById('emojiRow');
   er.innerHTML = '';
   emojis.forEach(e => {
@@ -890,24 +845,9 @@ async function fetchThumbnail() {
   if (ytMatch) {
     const videoId = ytMatch[1];
     const imgUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-    // S3에 썸네일 저장
-    try {
-      const s3Res = await fetch(`${API_URL}/thumbnail`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: imgUrl })
-      });
-      const s3Data = await s3Res.json();
-      if (s3Data.url) {
-        document.getElementById('f_thumbnail').value = s3Data.url;
-        showThumbImg(s3Data.url);
-        return;
-      }
-    } catch(e) {}
-    // S3 실패시 유튜브 URL 직접 사용
     document.getElementById('f_thumbnail').value = imgUrl;
     showThumbImg(imgUrl);
-    return;
+    return;  // microlink 호출 없이 바로 종료
   }
 
   const p = document.getElementById('thumbPreview');
@@ -920,25 +860,7 @@ async function fetchThumbnail() {
     const res = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`);
     const data = await res.json();
     const imgUrl = data?.data?.image?.url || null;
-    if (imgUrl) {
-      // S3에 썸네일 저장
-      try {
-        const s3Res = await fetch(`${API_URL}/thumbnail`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: imgUrl })
-        });
-        const s3Data = await s3Res.json();
-        if (s3Data.url) {
-          document.getElementById('f_thumbnail').value = s3Data.url;
-          showThumbImg(s3Data.url);
-          return;
-        }
-      } catch(e) {}
-      // S3 실패시 원본 URL 사용
-      document.getElementById('f_thumbnail').value = imgUrl;
-      showThumbImg(imgUrl);
-    }
+    if (imgUrl) { document.getElementById('f_thumbnail').value = imgUrl; showThumbImg(imgUrl); }
     else { document.getElementById('thumbLoading').style.display = 'none'; document.getElementById('thumbEmpty').style.display = 'flex'; setTimeout(resetThumbPreview, 2000); }
   } catch(e) {
     document.getElementById('thumbLoading').style.display = 'none';
@@ -949,7 +871,7 @@ async function fetchThumbnail() {
 
 // ── SETTINGS ──────────────────────────────────────────
 function openSettings() {
-  document.getElementById('settingsTagTitle').textContent = `태그 관리 — ${currentTab === 'recipe' ? 'Recipe' : currentTab === 'workout' ? 'Workout' : 'Golf'}`;
+  document.getElementById('settingsTagTitle').textContent = `태그 관리 — ${currentTab === 'recipe' ? 'Recipe' : currentTab === 'workout' ? 'Workout' : currentTab === 'golf' ? 'Golf' : 'Travel'}`;
   renderSettingsTagList();
   document.getElementById('newTagInput').value = '';
   document.getElementById('settingsOverlay').classList.add('open');
@@ -966,7 +888,7 @@ function renderSettingsTagList() {
   if (userTags.length === 0) { list.innerHTML = `<div class="settings-empty">저장된 태그가 없어요</div>`; return; }
   list.innerHTML = userTags.map(tag => {
     const usageCount = items.filter(r => (r.tags || []).includes(tag.name)).length;
-    return `<div class="settings-tag-row" draggable="true" data-id="${tag.id}" data-name="${tag.name}" data-category="${tag.category || currentTab}">
+    return `<div class="settings-tag-row" draggable="true" data-id="${tag.id}" data-name="${tag.name}">
       <div style="display:flex;align-items:center;gap:2px;">
         <span class="drag-handle">⠿</span>
         <span class="settings-tag-name">${tag.name}</span>
@@ -1026,8 +948,8 @@ function initDragAndDrop() {
 async function saveTagOrder() {
   const list = document.getElementById('settingsTagList');
   const rows = [...list.querySelectorAll('.settings-tag-row')];
-  const newOrder = rows.map((row, i) => ({ id: String(row.dataset.id), category: row.dataset.category, sort_order: i * 10 }));
-  userTags = newOrder.map(o => userTags.find(t => String(t.id) === o.id)).filter(Boolean);
+  const newOrder = rows.map((row, i) => ({ id: row.dataset.id, sort_order: i * 10, category: currentTab }));
+  userTags = newOrder.map(o => userTags.find(t => String(t.id) === String(o.id))).filter(Boolean);
   try {
     await Promise.all(newOrder.map(o => api.updateTagOrder(o.id, o.sort_order, o.category)));
     buildTagFilter();
@@ -1053,14 +975,12 @@ async function addNewTag() {
 }
 
 async function deleteTag(id, name) {
-  const tag = userTags.find(t => String(t.id) === String(id));
-  const category = tag?.category || currentTab;
   const usageCount = items.filter(r => (r.tags || []).includes(name)).length;
   const msg = usageCount > 0 ? `"${name}" 태그를 삭제할까요?\n(${usageCount}개 항목에서도 제거됩니다)` : `"${name}" 태그를 삭제할까요?`;
   if (!confirm(msg)) return;
-  const table = currentTab === 'recipe' ? 'recipes' : currentTab === 'workout' ? 'workouts' : 'golfs';
+  const table = currentTab === 'recipe' ? 'recipes' : currentTab === 'workout' ? 'workouts' : currentTab === 'golf' ? 'golfs' : 'travels';
   try {
-    await api.deleteTag(id, category);
+    await api.deleteTag(id, currentTab);
     const affected = items.filter(r => (r.tags || []).includes(name));
     await Promise.all(affected.map(r => api.updateItem(table, r.id, { tags: r.tags.filter(t => t !== name) })));
     items = items.map(r => ({ ...r, tags: (r.tags || []).filter(t => t !== name) }));
@@ -1091,7 +1011,7 @@ async function importData(e) {
       if (!data.items && !data.recipes) { alert('올바른 백업 파일이 아니에요'); return; }
       const sourceItems = data.items || data.recipes;
       if (!confirm(`${sourceItems.length}개를 불러올까요?\n현재 데이터에 추가됩니다.`)) return;
-      const table = currentTab === 'recipe' ? 'recipes' : currentTab === 'workout' ? 'workouts' : 'golfs';
+      const table = currentTab === 'recipe' ? 'recipes' : currentTab === 'workout' ? 'workouts' : currentTab === 'golf' ? 'golfs' : 'travels';
       for (const r of sourceItems) {
         const { id, created_at, ...itemData } = r;
         await api.addItem(table, itemData);
@@ -1105,62 +1025,8 @@ async function importData(e) {
   e.target.value = '';
 }
 
-// ── AUTH HANDLERS ─────────────────────────────────────
-let pendingSession = null;
-let pendingEmail = null;
-
-async function handleLogin() {
-  const email = document.getElementById('loginEmail').value.trim();
-  const password = document.getElementById('loginPassword').value;
-  const errEl = document.getElementById('loginError');
-  errEl.style.display = 'none';
-  try {
-    const result = await cognitoLogin(email, password);
-    if (result.challenge === 'NEW_PASSWORD_REQUIRED') {
-      pendingSession = result.session;
-      pendingEmail = email;
-      document.getElementById('loginForm').style.display = 'none';
-      document.getElementById('newPasswordForm').style.display = 'block';
-    } else {
-      showAppScreen();
-      await init();
-    }
-  } catch(e) {
-    errEl.textContent = e.message;
-    errEl.style.display = 'block';
-  }
-}
-
-async function handleNewPassword() {
-  const newPw = document.getElementById('newPassword').value;
-  const confirm = document.getElementById('newPasswordConfirm').value;
-  const errEl = document.getElementById('newPasswordError');
-  errEl.style.display = 'none';
-  if (newPw !== confirm) {
-    errEl.textContent = '비밀번호가 일치하지 않아요';
-    errEl.style.display = 'block';
-    return;
-  }
-  try {
-    await cognitoNewPassword(pendingEmail, newPw, pendingSession);
-    showAppScreen();
-    await init();
-  } catch(e) {
-    errEl.textContent = e.message;
-    errEl.style.display = 'block';
-  }
-}
-
-// ── STARTUP ───────────────────────────────────────────
-const savedToken = localStorage.getItem('authToken');
-if (savedToken) {
-  authToken = savedToken;
-  showAppScreen();
-  init();
-} else {
-  showLoginScreen();
-}
+init();
 </script>
-</div> <!-- appContainer -->
+</div><!-- /appScreen -->
 </body>
 </html>
